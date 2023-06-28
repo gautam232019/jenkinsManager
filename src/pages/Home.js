@@ -10,6 +10,7 @@ function Home() {
   const [user,setUser] = useState('');
   const [ssmkey,setSsmkey] = useState('');
   const [data,setData] = useState({});
+  const [isVisible ,setIsVisible] = useState(false)
   
   const getData = async () => {
      await axios.get('http://localhost:3001/api/data')
@@ -53,31 +54,49 @@ function Home() {
       toast(error)
     })
   }
+
+  const showForm = () => {
+      setIsVisible(true);
+  }
+
   return (
     <div className='home'>
       <ToastContainer/>
-      <h6 style={{marginLeft:'18%',marginRight:'12%',marginBottom:'3%'}}>With this store we can manage our Credentials in multiple jenkins instances at once. It uses jenkins api for CRUD operations in it.<br/><br/> Add your jenkins below!!</h6>
-      <form onSubmit={handleSubmit}>
+      <div style={{marginLeft:'17%'}}>
+      {/* <div style={{marginRight:'12%',width:'90%',fontSize:'24px',fontFamily:'Raleway,"Open Sans",sans-serif',marginTop:'3%'}}>With this store we can manage our Credentials in multiple jenkins instances at once. It uses jenkins api for CRUD operations in it.<br/><br/></div> */}
+      <header className="header">
+        <h5 className="header__title">With this store we can manage our Credentials in multiple jenkins instances at once. It uses jenkins api for CRUD operations in it.<br/><br/></h5>
+        <hr className="header__line" />
+      <button type="submit" className='addJenkinsForm' style={{marginTop:'0px',fontSize:'14px'}} onClick={showForm}>ADD JENKINS</button>
+      </header>
+      { isVisible ?
+        <form onSubmit={handleSubmit} style={{alignItems:'center',marginLeft:'5px',width:'300px'}}>
             <input
               type="text"
               value={url}
               onChange={event => setUrl(event.target.value)}
               placeholder="Url"
+              className='addJenkinsForm'
             />
             <input
               type="ssmkey"
               value={ssmkey}
               onChange={event => setSsmkey(event.target.value)}
               placeholder="SSM Key"
+              className='addJenkinsForm'
             />
             <input
               type="text"
               value={user}
               onChange={event => setUser(event.target.value)}
               placeholder="User"
+              className='addJenkinsForm'
             />
-              <button type="submit">Add Jenkins</button>
-          </form>
+              <button type="submit" className='addJenkinsForm'>ADD</button>
+          </form> : <div></div>
+           
+          }
+     </div>
     </div>
   );
 }

@@ -8,22 +8,65 @@ import {useHistory} from 'react-router-dom';
 
 const UpdateCredentals = (props) => {
     const history = useHistory();
-    // console.log(props.location.state);
-    // const {id,typeName,description,username} = props.location.state;
-    const [realid, setRealid] = useState(props.location.state.id)
-    const [typeName, setTypeName] = useState(props.location.state.typeName)
+    
+    let id,typeName,description,username;
+    let state;
+
+    if(props.location.state){
+      id = props.location.state.id;
+      typeName = props.location.state.typeName;
+      description = props.location.state.description;
+      username = props.location.state.username;
+      state = localStorage.getItem('state')
+      if(state){
+        localStorage.removeItem('state')
+      }
+      localStorage.setItem('state',JSON.stringify(props.location.state));
+    }
+    else{
+      state = localStorage.getItem('state')
+      if(state) {
+        state = JSON.parse(state);
+        id = state.id;
+        typeName = state.typeName;
+        description = state.description;
+        username = state.username;
+      }
+    }
+
+    // console.log(type);
+    const [realid, setRealid] = useState(id)
+    const [type, setType] = useState(typeName)
     const [scope, setScope] = useState('GLOBAL');
     const [crumb, setCrumb] = useState('')
-    const [preusername, setPreUsername] = useState(props.location.state.username);
+    const [preusername, setPreUsername] = useState(username);
     const [password, setPassword] = useState('');
-    const [predescription, setPreDescription] = useState(props.location.state.description);
+    const [predescription, setPreDescription] = useState(description);
+    const [selectall, setSelectall] = useState(false)
+    const [baseUrls,setBaseurls] = useState([]);
+    const [keys,setKeys] = useState([]);
+    const [users,setUsers] = useState([]);
+  
+    const getData = async () => {
+      await axios.get('http://localhost:3001/api/data')
+      .then(response => {
+       console.log(response.data.data.urls);
+       setBaseurls(response.data.data.urls);
+       setUsers(response.data.data.users);
+       setKeys(response.data.data.keys);
+      })
+    }
+    useEffect(() => {
+      // this.props.location ? this.props.location.state :  :
+      getData();
+    }, []);
 
     let preChoice = "";
-    if(typeName == "Username with password"){
+
+    if(type == "Username with password"){
         preChoice = "option1";
-        console.log(typeName);
     }
-    else if(typeName == "SSH Username with private key"){
+    else if(type == "SSH Username with private key"){
         preChoice = "option2";
     }
     else{
@@ -38,15 +81,15 @@ const UpdateCredentals = (props) => {
     const [selectAll,setSelectAll] = useState(false)
     // const [isLoading,setIsLoading] = useState(false)
     
-    const baseUrls = ['http://3.135.18.230:8080/','http://3.128.203.238:8080/']
-    const keys = ['jenkin1','jenkin2'];
-    const users = ['manas','gautam'];
+    // const baseUrls = ['http://3.135.18.230:8080/','http://3.128.203.238:8080/']
+    // const keys = ['jenkin1','jenkin2'];
+    // const users = ['manas','gautam'];
 
-    const [checkboxes, setCheckboxes] = useState({
-        option1: false,
-        option2: false,
-        option3: false
-      });
+    let obj = {};
+    for(let i=0 ; i<baseUrls.length ; i++){
+        obj[`option${i+1}`] = false;
+    }
+    const [checkboxes, setCheckboxes] = useState(obj);
   
       const handleCheckboxChange = (event) => {
         const { name, checked } = event.target;
@@ -268,7 +311,7 @@ const UpdateCredentals = (props) => {
       };
 
     const renderFormFields = () => {
-        if (typeName === 'Username with password') {
+        if (type == 'Username with password') {
           return (
             <form onSubmit={handleSubmit}>
             <input
@@ -311,7 +354,7 @@ const UpdateCredentals = (props) => {
             </div>
           </form>
           );
-        } else if (typeName === 'SSH Username with private key') {
+        } else if (type == 'SSH Username with private key') {
           return (
             <form onSubmit={handleSubmit}>
             <input
@@ -371,7 +414,7 @@ const UpdateCredentals = (props) => {
             </div>
           </form>
           );
-        } else if (typeName === 'Secret text') {
+        } else if (type == 'Secret text') {
           return (
             <form onSubmit={handleSubmit}>
             <input
@@ -410,7 +453,7 @@ const UpdateCredentals = (props) => {
             <ToastContainer/>
             <div className="checkbox-container">
       {/* <h1>Checkbox Example</h1> */}
-      <label className="checkbox-label">
+      {/* <label className="checkbox-label">
         <input
           type="checkbox"
           name="option1"
@@ -450,7 +493,32 @@ const UpdateCredentals = (props) => {
         />
         <span className="checkmark"></span>
         Select All
+      </label> */}
+      <label className="checkbox-label">
+        <input
+          type="checkbox"
+          name={`selectall`}
+          checked={selectall}
+          // onChange={handleCheckboxChange}
+          // style={{marginLeft:'10px'}}
+        />
+        <span className="checkmark"></span>
+        {`Select All`}
       </label>
+      {
+        baseUrls.map((item,index) => (
+      <label className="checkbox-label">
+        <input
+          type="checkbox"
+          name={`option${index+1}`}
+          checked={checkboxes[`option${index+1}`]}
+          onChange={handleCheckboxChange}
+          // style={{marginLeft:'10px'}}
+        />
+        <span className="checkmark"></span>
+        {`Jenkins ${index+1}`}
+      </label>
+        ))}
     </div>
       <div style={{marginTop:'2%',width:'60%',alignItems:'center',display:'inline-block',marginLeft:'65px'}}>
         <div style={{marginLeft:'80px'}}>

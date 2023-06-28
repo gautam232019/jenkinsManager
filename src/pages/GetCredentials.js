@@ -3,10 +3,11 @@ import AWS from 'aws-sdk';
 import axios from 'axios';
 import data from './data.json'
 import {useHistory} from 'react-router-dom';
+import Select from 'react-select';
 
 function  GetCredentials() {
   const history = useHistory();
-  
+
   const [crumb, setCrumb] = useState('')
   const [items, setItems] = useState([]);
   const [selectall, setSelectall] = useState(false)
@@ -14,21 +15,33 @@ function  GetCredentials() {
   const [baseUrls,setBaseurls] = useState([]);
   const [keys,setKeys] = useState([]);
   const [users,setUsers] = useState([]);
- 
-  const [checkboxes, setCheckboxes] = useState({
-    option1: false,
-    option2: false,
-    option3: false
-  });
-
-  const handleCheckboxChange = (event) => {
-    const { name, checked } = event.target;
-    console.log(name);
-    setCheckboxes(prevState => ({
-      ...prevState,
-      [name]: checked
-    }));
+  
+  const options = [];
+  for(let i=0 ; i<baseUrls.length ; i++){
+    options.push({ value: i, label: `Jenkins ${i+1}` });
+  }
+   
+  const [selectedOptions, setSelectedOptions] = useState([]);
+  
+  const handleOptionChange = (selected) => {
+    setSelectedOptions(selected);
   };
+ 
+    // let obj = {};
+    // for(let i=0 ; i<baseUrls.length ; i++){
+    //     obj[`option${i+1}`] = false;
+    // }
+    // const [checkboxes, setCheckboxes] = useState(obj);
+
+
+  // const handleCheckboxChange = (event) => {
+  //   const { name, checked } = event.target;
+  //   console.log(name);
+  //   setCheckboxes(prevState => ({
+  //     ...prevState,
+  //     [name]: checked
+  //   }));
+  // };
 
   const getData = async () => {
     await axios.get('http://localhost:3001/api/data')
@@ -60,18 +73,21 @@ function  GetCredentials() {
       throw error;
     }
   }
-  let customStr;
+  // let customStr;
   const getCreds = (event) => {
-      
-      for(let i=0 ; i< Object.keys(checkboxes).length-1 ; i++){
-        customStr = `option${i+1}`;
-         if(checkboxes[customStr]){
-           getItems(event,baseUrls[i],keys[i],users[i]);
-         }
+    // console.log(selectedOptions[0].value);
+      for(let i=0 ; i< selectedOptions.length ; i++){
+        // customStr = `option${i+1}`;
+        //  if(checkboxes[customStr]){
+        //    getItems(event,baseUrls[i],keys[i],users[i]);
+        //  }
+        let selectedNo = selectedOptions[i].value;
+        getItems(event,baseUrls[selectedNo],keys[selectedNo],users[selectedNo]);
        }
        setShowTable(true);
   }
   let finalItems = [];
+  let commonArray = [];
   const getItems = async (event,url,key,user) => {
     event.preventDefault();
     const uniqueKey = await fetchKey(key);
@@ -93,10 +109,17 @@ function  GetCredentials() {
     console.log(config);
     await axios.get(`${url}manage/credentials/store/system/domain/_/api/json?tree=credentials[id,description,typeName]`,config)
       .then(response => {
-        finalItems = [...finalItems,...response.data.credentials];
-        let uniqueArray = Array.from(new Set(finalItems.map(JSON.stringify)), JSON.parse);
-        setItems(uniqueArray);
-        console.log(uniqueArray);
+        if(finalItems.length == 0){
+          finalItems = [...finalItems,...response.data.credentials];
+          commonArray = finalItems;
+        }
+        // let uniqueArray = Array.from(new Set(finalItems.map(JSON.stringify)), JSON.parse);
+        // console.log(response.data.credentials);
+        commonArray = commonArray.filter((item) =>
+          response.data.credentials.some((credItem) => credItem.id === item.id)
+        );
+        setItems(commonArray);
+        // console.log(commonArray);
       })
       .catch(error => {
         console.error('Error retrieving items:', error);
@@ -112,9 +135,27 @@ function  GetCredentials() {
 
   return (
 <div className="getcredential">
-    <div className="checkbox-container">
+    <div className="select-jenkins">
+          {/* <label>Select Jenkins:</label>I */}
+          <Select
+            isMulti
+            options={options}
+            value={selectedOptions}
+            onChange={handleOptionChange}
+          />
+          {/* <div>
+            Selected options:
+            {selectedOptions.map((option) => (
+              <span key={option.value}>{option.label}, </span>
+            ))}
+          </div> */}
+          <button className="delete-btn" style={{backgroundColor:'#367b88',fontSize:'15px',fontWeight: 'bold',marginTop:'20px'}} onClick={getCreds}>
+              Get Credentials
+      </button>
+    </div>
+    {/* <div className="checkbox-container"> */}
       
-      <label className="checkbox-label">
+      {/* <label className="checkbox-label">
         <input
           type="checkbox"
           name={`selectall`}
@@ -124,8 +165,8 @@ function  GetCredentials() {
         />
         <span className="checkmark"></span>
         {`Select All`}
-      </label>
-      {baseUrls.map((item,index) => (
+      </label> */}
+      {/* {baseUrls.map((item,index) => (
       <label className="checkbox-label">
         <input
           type="checkbox"
@@ -137,7 +178,7 @@ function  GetCredentials() {
         <span className="checkmark"></span>
         {`Jenkins ${index+1}`}
       </label>
-        ))}
+        ))} */}
       {/* <label className="checkbox-label">
         <input
           type="checkbox"
@@ -179,10 +220,7 @@ function  GetCredentials() {
         <span className="checkmark" style={{marginLeft:'8px'}}></span>
         Select All
       </label> */}
-      <button className="delete-btn" style={{marginLeft:"5px",backgroundColor:'green',fontSize:'15px','fontWeight': 'bold'}} onClick={getCreds}>
-              Get Credentials
-      </button>
-    </div>
+    {/* </div> */}
   {showTable ? 
     <table>
     <thead>
@@ -204,7 +242,7 @@ function  GetCredentials() {
             {/* <button className="delete-btn" onClick={() => deleteItem(item.id)}>
               Manage
             </button> */}
-            <button className="delete-btn" style={{marginLeft:"5px",backgroundColor:'green',fontSize:'15px'}} onClick={() => updateItem(item)}>
+            <button className="delete-btn" style={{marginLeft:"5px",backgroundColor:'#367b88',fontSize:'15px'}} onClick={() => updateItem(item)}>
               Manage
             </button>
           </td>

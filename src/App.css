@@ -4,7 +4,7 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-  font-family: 'Lato', sans-serif;
+  font-family: 'Open Sans', sans-serif;
 }
 
 .createcredential {
@@ -14,27 +14,56 @@
   justify-content: flex-start;
   height: 91vh;
   font-size: 2rem;
-  background-color: rgb(205, 216, 216);
+  background-color: #fafafa;
 }
 .getcredential {
   display: grid;
-  align-items: center;
-  justify-content: center;
+  /* align-items: center; */
+  /* justify-content: center; */
   min-height: 91vh;
-  background-color: rgb(205, 216, 216);
+  background-color: #fafafa;
+}
+.select-jenkins{
+  width:50%;
+  margin-left: 30%;
+  margin-top:5%;
+  font-size: 20px;
+}
+.header {
+  margin-top: 30px;
+  margin: -0 0 0 -30px;
+  padding: 70px 50px;
+  text-align: start;
+  background-color: #cf0000;
+}
+
+.header__title {
+  font-size: 34px;
+  margin-bottom: 10px;
+  font-family: Raleway,"Open Sans",sans-serif;
+  font-weight: normal;
+  color: #fff;
+}
+
+.header__line {
+  width: 50%;
+  /* margin: 0 ; */
+  border: none;
+  border-top: 1px solid #ccc;
 }
 
 .table-container {
   width: 80%;
 }
 .getcredential table {
-  width: 100%;
+  width: 60%;
   border-collapse: collapse;
-  margin-bottom: 30%;
+  margin-bottom: 5%;
   margin-top:5%;
-  background-color: #fff;
+  background-color: #ffffff;
   border: 5px solid #363131;
   border-radius: 15px;
+  margin-left: 25%;
 }
 
 .getcredential th,
@@ -49,8 +78,8 @@
 }
 
 .getcredential .delete-btn {
-  background-color: #e74c3c;
-  color: #fff;
+  background-color: #ff0000;
+  color: #fafafa;
   border: none;
   padding: 5px 10px;
   border-radius: 4px;
@@ -64,12 +93,12 @@
 
 .home{
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   height: 91vh;
-  align-items: center;
+  /* align-items: center; */
   justify-content: center;
   font-size: 40px;
-  background-color: rgb(205, 216, 216);
+  background-color: #fafafa;
 }
 form {
   display: flex;
@@ -83,47 +112,50 @@ form {
 input {
   margin-bottom: 10px;
   padding: 5px;
-  border: 1px solid #ccc;
+  border: 1px solid #262626;
   border-radius: 5px;
   width: 600px;
 }
 
+.addJenkinsForm{
+  width: inherit
+}
 .fixedFields{
   background-color: #b7b6b6;
   pointer-events: none;
 }
 button[type="submit"] {
-  padding: 5px 10px;
-  background-color: #4caf50;
+  padding: 8px 15px;
+  background-color: #367b88;
   border-radius: 10px;
   border: none;
-  color: #fff;
+  color: #fafafa;
   cursor: pointer;
   width: 'fit-content';
   margin-top: 10%;
   /* margin-left: 20px; */
-  font-weight: bold;
-  font-size: 18px;
+  /* font-weight: bold; */
+  font-size: 14px;
 }
 
 button[type="submit"]:hover {
-  background-color: #45a049;
+  background-color: #359db0;
 }
 .delete-btn {
   padding: 5px 10px;
-  background-color: #ff5252;
+  background-color: #ff0000;
   border: none;
   font-size: 18px;
-  color: #fff;
+  color: #fafafa;
   border-radius: 10px;
   cursor: pointer;
 }
 
 .delete-btn:hover {
-  background-color: #c11010;
+  background-color: #ff0000;
 }
 .checkbox-container {
-  margin-top:5%;
+  margin-top:3%;
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -140,12 +172,12 @@ button[type="submit"]:hover {
   display: flex;
   position: relative;
   justify-content: space-around;
+  align-items: center;
   cursor: pointer;
   font-size: 18px;
   font-style: bold;
   user-select: none;
   width:250px;
-  align-items: center;
 }
 
 .checkbox-label input {
@@ -161,12 +193,13 @@ button[type="submit"]:hover {
   left: 0;
   height: 20px;
   width: 20px;
-  background-color: #fff;
+  background-color: #fafafa;
+  border: 1px solid #262626;
   border-radius: 3px;
 }
 
 .checkbox-label input:checked ~ .checkmark {
-  background-color: #2196F3;
+  background-color: #359db0;
 }
 
 .checkmark:after {
@@ -184,7 +217,7 @@ button[type="submit"]:hover {
   top: 3px;
   width: 6px;
   height: 12px;
-  border: solid white;
+  border: solid #fafafa;
   border-width: 0 3px 3px 0;
   transform: rotate(45deg);
 }

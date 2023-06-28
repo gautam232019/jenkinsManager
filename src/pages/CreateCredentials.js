@@ -5,7 +5,8 @@ import qs from 'qs';
 import { useEffect } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import data from './data.json'
+import Select from 'react-select';
+// import data from './data.json'
 
 function CreateCredentials() {
   const [scope, setScope] = useState('GLOBAL');
@@ -17,6 +18,7 @@ function CreateCredentials() {
   const [selectedOption, setSelectedOption] = useState('');
   const [type,setType] = useState('');
   const [param,setParam] = useState()
+  const [selectall, setSelectall] = useState(false)
   const [usernameSecret,setUsernameSecret] = useState(false)
   const [privateKey,setPrivateKey] = useState("")
   const [passphrase,setPassphrase] = useState("")
@@ -24,21 +26,44 @@ function CreateCredentials() {
   const [selectAll,setSelectAll] = useState(false)
   const [isLoading,setIsLoading] = useState(false)
 
-  const baseUrls = data.data.urls;
-  const keys = data.data.keys;
-  const users = data.data.users;
+  const [baseUrls,setBaseurls] = useState([]);
+  const [keys,setKeys] = useState([]);
+  const [users,setUsers] = useState([]);
+
+  const options = [];
+  for(let i=0 ; i<baseUrls.length ; i++){
+    options.push({ value: i, label: `Jenkins ${i+1}` });
+  }
+   
+  const [selectedOptions, setSelectedOptions] = useState([]);
+  
+  const handleJenkinsOptionChange = (selected) => {
+    setSelectedOptions(selected);
+  };
+
+  const getData = async () => {
+    await axios.get('http://localhost:3001/api/data')
+    .then(response => {
+     console.log(response.data.data.urls);
+     setBaseurls(response.data.data.urls);
+     setUsers(response.data.data.users);
+     setKeys(response.data.data.keys);
+    })
+  }
+  useEffect(() => {
+    getData();
+  }, []);
+
+  // const baseUrls = data.data.urls;
+  // const keys = data.data.keys;
+  // const users = data.data.users;
   
   // console.log(baseUrls);
 
   const handleOptionChange = (event) => {
     setSelectedOption(event.target.value);
   };
-  
-  const [checkboxes, setCheckboxes] = useState({
-    option1: false,
-    option2: false,
-    option3: false
-  });
+
 
   const [usernameCheckbox,setUsernameCheckbox] = useState({
     option: false
@@ -53,24 +78,6 @@ function CreateCredentials() {
     console.log(usernameCheckbox);
   }
 
-  const handleCheckboxChange = (event) => {
-    const { name, checked } = event.target;
-    console.log(checkboxes);
-    setCheckboxes(prevState => ({
-      ...prevState,
-      [name]: checked
-    }));
-  };
-
-  const handleSelectAllChange = () => {
-    const updatedCheckboxes = checkboxes.map((checkbox) => ({
-      ...checkbox,
-      checked: !selectAll
-    }));
-    setCheckboxes(updatedCheckboxes);
-    console.log(checkboxes);
-    setSelectAll(!selectAll);
-  };
 
   async function fetchKey (param) {
     const ssm = new AWS.SSM();
@@ -93,13 +100,14 @@ function CreateCredentials() {
   let handleSubmit = (event) => {
     event.preventDefault();
     
-    for(let i=0 ; i< Object.keys(checkboxes).length-1 ; i++){
-     customStr = `option${i+1}`;
-      if(checkboxes[customStr]){
-        createItem(event,baseUrls[i],keys[i],users[i]);
-      }
+    for(let i=0 ; i< selectedOptions.length ; i++){
+    //  customStr = `option${i+1}`;
+    //   if(checkboxes[customStr]){
+    //     createItem(event,baseUrls[i],keys[i],users[i]);
+    let selectedNo = selectedOptions[i].value;
+    createItem(event,baseUrls[selectedNo],keys[selectedNo],users[selectedNo]);
     }
-    setIsLoading(false);
+    // setIsLoading(false);
   }
 
   let createItem = async (event,url,uniqueKey,user) => {
@@ -318,64 +326,13 @@ function CreateCredentials() {
   
   return (
     <div className='createcredential'>
-       {isLoading && <div className="loading-bar"></div>}
-       <div className="checkbox-container">
-      {/* <h1>Checkbox Example</h1> */}
-      {
-        data.data.urls.map((item,index) => (
-      <label className="checkbox-label">
-        <input
-          type="checkbox"
-          name={`option${index+1}`}
-          checked={checkboxes[`option${index+1}`]}
-          onChange={handleCheckboxChange}
-          // style={{marginLeft:'10px'}}
-        />
-        <span className="checkmark"></span>
-        {`Jenkins ${index+1}`}
-      </label>
-        ))}
-      {/* <label className="checkbox-label">
-        <input
-          type="checkbox"
-          name="option1"
-          checked={checkboxes.option1}
-          onChange={handleCheckboxChange}
-          // style={{marginLeft:'10px'}}
-        />
-        <span className="checkmark"></span>
-        Jenkin 1
-      </label>
-      <label className="checkbox-label">
-        <input
-          type="checkbox"
-          name="option2"
-          checked={checkboxes.option2}
-          onChange={handleCheckboxChange}
-        />
-        <span className="checkmark"></span>
-        Jenkin 2
-      </label>
-      <label className="checkbox-label">
-        <input
-          type="checkbox"
-          name="option3"
-          checked={checkboxes.option3}
-          onChange={handleCheckboxChange}
-        />
-        <span className="checkmark"></span>
-        Jenkin 3
-      </label> */}
-      {/* <label className="checkbox-label">
-        <input
-          type="checkbox"
-          name="option4"
-          checked={selectAll}
-          onChange={handleSelectAllChange}
-        />
-        <span className="checkmark"></span>
-        Select All
-      </label> */}
+       <div style={{marginLeft:'10%'}} className="select-jenkins">
+          <Select
+            isMulti
+            options={options}
+            value={selectedOptions}
+            onChange={handleJenkinsOptionChange}
+          />
     </div>
       <div style={{marginTop:'2%',width:'60%',alignItems:'center',display:'inline-block',marginLeft:'65px'}}>
         <div style={{marginLeft:'80px'}}>
