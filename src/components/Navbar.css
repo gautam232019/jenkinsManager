@@ -35,8 +35,21 @@
   display: flex;
   justify-content: start;
   align-items: center;
-  padding: 0px 0px 0px 0px;
+  padding: 0px 0px 0px 10px;
   list-style: none;
+  height: 40px;
+}
+
+.static-text {
+  display: flex;
+  justify-content: start;
+  align-items: center;
+  padding: 0px 0px 0px 14px;
+  background-color: #cbcbcb;
+  list-style: none;
+  margin-top: 15px;
+  font-weight: bold;
+  /* margin-left: 10px; */
   height: 40px;
 }
 

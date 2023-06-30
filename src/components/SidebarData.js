@@ -11,6 +11,12 @@ export const SidebarData = [
     cName: 'nav-text'
   },
   {
+    title: 'Manage Credentials',
+    path: '',
+    icon: <IoIcons.IoIosReturnRight/>,
+    cName: 'static-text'
+  },
+  {
     title: 'Get Credentials',
     path: '/getcredentials',
     icon: <IoIcons.IoIosPaper />,

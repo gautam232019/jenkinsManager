@@ -41,6 +41,16 @@ function Navbar() {
               {/* </Link> */}
             {/* </li> */}
             {SidebarData.map((item, index) => {
+              if(item.title == "Manage Credentials"){
+                return(
+                  <li key={index} className={`${item.cName}`} >
+                    <div>
+                    {item.icon}
+                      <span>{item.title}</span>
+                    </div>
+                </li>
+                )
+              }
               const className = item.title === isSelected ? 'selected' : '';
               return (
                 <li key={index} className={`${item.cName} ${className}`} onClick={() => selectedItem(item.title)} >
