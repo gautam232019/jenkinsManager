@@ -5,15 +5,21 @@ import { Link } from 'react-router-dom';
 import { SidebarData } from './SidebarData';
 import './Navbar.css';
 import { IconContext } from 'react-icons';
+import { useEffect } from 'react';
 
 function Navbar() {
   const [sidebar, setSidebar] = useState(false);
-  const [isSelected, setIsSelected] = useState('Home');
+
+  const [isSelected, setIsSelected] = useState('');
+
+ useEffect(() => {
+  setIsSelected(localStorage.getItem('selectedOption') || 'Home');
+ },[])
 
   const showSidebar = () => setSidebar(!sidebar);
 
   const selectedItem = (item) => {
-    console.log(item);
+    localStorage.setItem('selectedOption',item);
     setIsSelected(item);
   }
 

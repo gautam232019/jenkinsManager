@@ -5,6 +5,8 @@ import qs from 'qs';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import {useHistory} from 'react-router-dom';
+import Select from 'react-select';
+
 
 const UpdateCredentals = (props) => {
     const history = useHistory();
@@ -46,6 +48,17 @@ const UpdateCredentals = (props) => {
     const [baseUrls,setBaseurls] = useState([]);
     const [keys,setKeys] = useState([]);
     const [users,setUsers] = useState([]);
+
+    const options = [];
+  for(let i=0 ; i<baseUrls.length ; i++){
+    options.push({ value: i, label: `Jenkins ${i+1}` });
+  }
+   
+  const [selectedOptions, setSelectedOptions] = useState([]);
+  
+  const handleJenkinsOptionChange = (selected) => {
+    setSelectedOptions(selected);
+  };
   
     const getData = async () => {
       await axios.get('http://localhost:3001/api/data')
@@ -242,11 +255,13 @@ const UpdateCredentals = (props) => {
       let handleSubmit = async (event) => {
         event.preventDefault();
         // setIsLoading(true)
-        for(let i=0 ; i< Object.keys(checkboxes).length-1 ; i++){
-         customStr = `option${i+1}`;
-          if(checkboxes[customStr]){
-            updateItem(event,baseUrls[i],keys[i],users[i]);
-          }
+        for(let i=0 ; i< selectedOptions.length ; i++){
+            let selectedNo = selectedOptions[i].value;
+            updateItem(event,baseUrls[selectedNo],keys[selectedNo],users[selectedNo]);
+        //  customStr = `option${i+1}`;
+        //   if(checkboxes[customStr]){
+        //     updateItem(event,baseUrls[i],keys[i],users[i]);
+        //   }
         }
         history.goBack();
         // setIsLoading(false);
@@ -348,7 +363,7 @@ const UpdateCredentals = (props) => {
             />
             <div style={{display:'flex',gap:'10px'}}>
               <button type="submit">Update Credentials</button>
-              <button className="delete-btn" style={{marginTop:'10%',fontWeight:'bold',fontSize:'20px',backgroundColor:'red'}} onClick={handleDelete}>
+              <button className="delete-btn" style={{marginTop:'10%',fontWeight:'normal',fontSize:'20px',backgroundColor:'red'}} onClick={handleDelete}>
                 Delete
               </button>
             </div>
@@ -408,7 +423,7 @@ const UpdateCredentals = (props) => {
             />
             <div style={{display:'flex',gap:'10px'}}>
             <button type="submit">Update Credentials</button>
-            <button className="delete-btn" style={{marginTop:'10%',fontWeight:'bold',fontSize:'20px',backgroundColor:'red'}} onClick={handleDelete}>
+            <button className="delete-btn" style={{marginTop:'10%',fontWeight:'normal',fontSize:'20px',backgroundColor:'red'}} onClick={handleDelete}>
               Delete
             </button>
             </div>
@@ -438,7 +453,7 @@ const UpdateCredentals = (props) => {
             />
             <div style={{display:'flex',gap:'10px'}}>
             <button type="submit" style={{padding:'5px 15px'}}>Update Credentials</button>
-            <button className="delete-btn" style={{marginLeft:'20px',padding:'5px 50px',marginTop:'10%',fontWeight:'bold',fontSize:'18px',backgroundColor:'red'}} onClick={handleDelete}>
+            <button className="delete-btn" style={{marginLeft:'20px',padding:'5px 50px',marginTop:'10%',fontWeight:'normal',fontSize:'18px',backgroundColor:'red'}} onClick={handleDelete}>
               Delete
             </button>
             </div>
@@ -447,10 +462,26 @@ const UpdateCredentals = (props) => {
         }
         return null;
       };
+      
 
     return (
         <div className='createcredential'>
             <ToastContainer/>
+            <div style={{marginLeft:'8%'}} className="select-jenkins">
+          {/* <label>Select Jenkins:</label>I */}
+          <Select
+            isMulti
+            options={options}
+            value={selectedOptions}
+            onChange={handleJenkinsOptionChange}
+          />
+          {/* <div>
+            Selected options:
+            {selectedOptions.map((option) => (
+              <span key={option.value}>{option.label}, </span>
+            ))}
+          </div> */}
+    </div>
             <div className="checkbox-container">
       {/* <h1>Checkbox Example</h1> */}
       {/* <label className="checkbox-label">
@@ -494,18 +525,18 @@ const UpdateCredentals = (props) => {
         <span className="checkmark"></span>
         Select All
       </label> */}
-      <label className="checkbox-label">
+      {/* <label className="checkbox-label">
         <input
           type="checkbox"
           name={`selectall`}
           checked={selectall}
-          // onChange={handleCheckboxChange}
-          // style={{marginLeft:'10px'}}
+          onChange={handleCheckboxChange}
+          style={{marginLeft:'10px'}}
         />
         <span className="checkmark"></span>
         {`Select All`}
-      </label>
-      {
+      </label> */}
+      {/* {
         baseUrls.map((item,index) => (
       <label className="checkbox-label">
         <input
@@ -518,9 +549,9 @@ const UpdateCredentals = (props) => {
         <span className="checkmark"></span>
         {`Jenkins ${index+1}`}
       </label>
-        ))}
+        ))} */}
     </div>
-      <div style={{marginTop:'2%',width:'60%',alignItems:'center',display:'inline-block',marginLeft:'65px'}}>
+      <div style={{marginTop:'2%',width:'60%',alignItems:'center',display:'inline-block',marginLeft:'10%'}}>
         <div style={{marginLeft:'80px'}}>
           <label style={{ marginRight: '10px', fontSize: '18px', fontWeight: 'bold' }}>Kind:</label>
             <select  style={{
