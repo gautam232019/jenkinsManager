@@ -44,7 +44,7 @@ function  GetCredentials() {
   // };
 
   const getData = async () => {
-    await axios.get('http://localhost:3001/api/data')
+    await axios.get(`http://${process.env.REACT_APP_URL}:3001/api/data`)
     .then(response => {
      console.log(response.data.data.urls);
      setBaseurls(response.data.data.urls);
@@ -58,7 +58,7 @@ function  GetCredentials() {
   
   async function fetchKey (param) {
     const ssm = new AWS.SSM();
-  
+
     const params = {
       Name: param // Replace with the actual name of your SSM parameter
     };

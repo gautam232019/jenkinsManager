@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
-import * as FaIcons from 'react-icons/fa';
-import * as AiIcons from 'react-icons/ai';
 import { Link } from 'react-router-dom';
 import { SidebarData } from './SidebarData';
 import './Navbar.css';
 import { IconContext } from 'react-icons';
 import { useEffect } from 'react';
+import Logo from '../assets/Logo.png';
 
 function Navbar() {
   const [sidebar, setSidebar] = useState(false);
@@ -14,6 +13,7 @@ function Navbar() {
 
  useEffect(() => {
   setIsSelected(localStorage.getItem('selectedOption') || 'Home');
+  localStorage.removeItem('selectedOption');
  },[])
 
   const showSidebar = () => setSidebar(!sidebar);
@@ -27,7 +27,7 @@ function Navbar() {
     <>
       <IconContext.Provider value={{ color: '#262626' }}>
         <div className='navbar'>
-          <img style={{marginLeft:'40px'}} src='https://uxweb.wgti.net/design-system/assets/images/logos/wg-logo-white.svg'/>
+          <img style={{marginLeft:'40px'}} src={Logo}/>
           {/* <Link to='#' className='menu-bars'>
             <FaIcons.FaBars onClick={showSidebar} />
           </Link> */}

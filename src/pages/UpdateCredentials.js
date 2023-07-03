@@ -61,7 +61,7 @@ const UpdateCredentals = (props) => {
   };
   
     const getData = async () => {
-      await axios.get('http://localhost:3001/api/data')
+      await axios.get(`http://${process.env.REACT_APP_URL}:3001/api/data`)
       .then(response => {
        console.log(response.data.data.urls);
        setBaseurls(response.data.data.urls);
@@ -275,12 +275,10 @@ const UpdateCredentals = (props) => {
         const confirmDelete = window.confirm('Are you sure you want to delete?');
         if (confirmDelete) {
         let counter = 0;
-        for(let i=0 ; i< Object.keys(checkboxes).length-1 ; i++){
-         custom = `option${i+1}`;
-          if(checkboxes[custom]){
+        for(let i=0 ; i< selectedOptions.length ; i++){
+            let selectedNo = selectedOptions[i].value;
             counter = 1;
-            deleteItem(event,baseUrls[i],keys[i],users[i]);
-          }
+            deleteItem(event,baseUrls[selectedNo],keys[selectedNo],users[selectedNo]);
         }
         if(counter == 1){
           toast("Deleted Succesfully")
