@@ -151,7 +151,7 @@ function  GetCredentials() {
           </div> */}
           <button className="delete-btn" style={{backgroundColor:'#367b88',fontSize:'15px',fontWeight: 'bold',marginTop:'20px'}} onClick={getCreds}>
               Get Credentials
-      </button>
+          </button>
     </div>
     {/* <div className="checkbox-container"> */}
       

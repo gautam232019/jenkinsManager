@@ -41,7 +41,7 @@ function Navbar() {
               {/* </Link> */}
             {/* </li> */}
             {SidebarData.map((item, index) => {
-              if(item.title == "Manage Credentials"){
+              if(item.title === "Manage Credentials" || item.title === "Manage Pod Templates"){
                 return(
                   <li key={index} className={`${item.cName}`} >
                     <div>

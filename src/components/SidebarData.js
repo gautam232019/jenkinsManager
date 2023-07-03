@@ -27,5 +27,23 @@ export const SidebarData = [
     path: '/createcredentials',
     icon: <IoIcons.IoMdCreate/>,
     cName: 'nav-text'
+  },
+  {
+    title: 'Manage Pod Templates',
+    path: '',
+    icon: <IoIcons.IoIosReturnRight/>,
+    cName: 'static-text'
+  },
+  {
+    title: 'Get Pod Templates',
+    path: '/',
+    icon: <IoIcons.IoIosPaper/>,
+    cName: 'nav-text'
+  },
+  {
+    title: 'Create Pod Templates',
+    path: '/',
+    icon: <IoIcons.IoMdCreate/>,
+    cName: 'nav-text'
   }
 ];
