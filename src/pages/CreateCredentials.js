@@ -11,10 +11,10 @@ import Select from 'react-select';
 function CreateCredentials() {
   const [scope, setScope] = useState('GLOBAL');
   const [crumb, setCrumb] = useState('')
-  const [username, setUsername] = useState('gautam');
-  const [password, setPassword] = useState('gautam123');
-  const [description, setDescription] = useState('it is a dummy cred');
-  const [id, setId] = useState('gautam1');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [description, setDescription] = useState('');
+  const [id, setId] = useState('');
   const [selectedOption, setSelectedOption] = useState('');
   const [type,setType] = useState('');
   const [param,setParam] = useState()
@@ -32,7 +32,7 @@ function CreateCredentials() {
 
   const options = [];
   for(let i=0 ; i<baseUrls.length ; i++){
-    options.push({ value: i, label: `Jenkins ${i+1}` });
+    options.push({ value: i, label: keys[i] });
   }
    
   const [selectedOptions, setSelectedOptions] = useState([]);
@@ -99,13 +99,17 @@ function CreateCredentials() {
   let customStr;
   let handleSubmit = (event) => {
     event.preventDefault();
-    
-    for(let i=0 ; i< selectedOptions.length ; i++){
-    //  customStr = `option${i+1}`;
-    //   if(checkboxes[customStr]){
-    //     createItem(event,baseUrls[i],keys[i],users[i]);
-    let selectedNo = selectedOptions[i].value;
-    createItem(event,baseUrls[selectedNo],keys[selectedNo],users[selectedNo]);
+    if(selectedOptions.length == 0){
+      toast("Please select atleast on jenkins!!")
+    }
+    else{
+      for(let i=0 ; i< selectedOptions.length ; i++){
+        //  customStr = `option${i+1}`;
+        //   if(checkboxes[customStr]){
+        //     createItem(event,baseUrls[i],keys[i],users[i]);
+        let selectedNo = selectedOptions[i].value;
+        createItem(event,baseUrls[selectedNo],keys[selectedNo],users[selectedNo]);
+        }
     }
     // setIsLoading(false);
   }
@@ -115,6 +119,10 @@ function CreateCredentials() {
     let json;
     if(selectedOption == 'option1'){
       // setType("com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl");
+      if(id == '' || username == '' || password == ''){
+        toast("Please fill the necessary fields!")
+        return;
+      }
       json = {
         "": "0",
         "credentials": {
@@ -132,6 +140,10 @@ function CreateCredentials() {
       // console.log(param);
     }
     else if(selectedOption == 'option2'){
+      if(id == '' || username == '' || usernameSecret == ''){
+        toast("Please fill the necessary fields!")
+        return;
+      }
       // setType("com.cloudbees.jenkins.plugins.sshcredentials.impl.BasicSSHUserPrivateKey$DirectEntryPrivateKeySource");
       json = {
         "": "7",
@@ -155,6 +167,10 @@ function CreateCredentials() {
       }
     }
     else if(selectedOption == 'option3'){
+      if(id == '' || id == '' || secretText == ''){
+        toast("Please fill the necessary fields!")
+        return;
+      }
       json = {
         "": "9",
         "credentials": {
@@ -326,6 +342,7 @@ function CreateCredentials() {
   
   return (
     <div className='createcredential'>
+      <ToastContainer/>
        <div style={{marginLeft:'10%'}} className="select-jenkins">
           <Select
             isMulti

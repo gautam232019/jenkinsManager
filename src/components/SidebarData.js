@@ -42,7 +42,7 @@ export const SidebarData = [
   },
   {
     title: 'Create Pod Templates',
-    path: '/',
+    path: '/createpod',
     icon: <IoIcons.IoMdCreate/>,
     cName: 'nav-text'
   }

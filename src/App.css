@@ -8,7 +8,7 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-  font-family: 'Open Sans', sans-serif;
+  font-family: 'Open Sans',Raleway, sans-serif;
 }
 
 .createcredential {
@@ -16,8 +16,9 @@
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  height: 92.6vh;
+  height: 93vh;
   font-size: 2rem;
+  margin-top: 50px;
   background-color: #fafafa;
 }
 .getcredential {
@@ -25,6 +26,7 @@
   /* align-items: center; */
   /* justify-content: center; */
   min-height: 92.6vh;
+  margin-top: 50px;
   background-color: #fafafa;
 }
 .select-jenkins{
@@ -75,7 +77,7 @@
   margin-bottom: 5%;
   margin-top:5%;
   background-color: #ffffff;
-  border: 5px solid #363131;
+  border: 2px solid #363131;
   border-radius: 15px;
   margin-left: 25%;
 }
@@ -108,10 +110,11 @@
 .home{
   display: flex;
   flex-direction: row;
-  height: 91vh;
+  height: fit-content;
   /* align-items: center; */
   justify-content: center;
   font-size: 40px;
+  margin-top:50px;
   background-color: #fafafa;
 }
 form {
@@ -152,7 +155,24 @@ button[type="submit"] {
   font-size: 14px;
 }
 
+button[type="button"] {
+  padding: 8px 15px;
+  background-color: #367b88;
+  border-radius: 10px;
+  border: none;
+  color: #fafafa;
+  cursor: pointer;
+  width: 'fit-content';
+  margin-top: 10%;
+  /* margin-left: 20px; */
+  /* font-weight: bold; */
+  font-size: 14px;
+}
+
 button[type="submit"]:hover {
+  background-color: #359db0;
+}
+button[type="button"]:hover {
   background-color: #359db0;
 }
 .delete-btn {
@@ -268,4 +288,13 @@ button[type="submit"]:hover {
   100% {
     width: 100%;
   }
+}
+
+.createpod{
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  height: fit-content;
+  margin-top:50px;
+  background-color: #fafafa;
 }

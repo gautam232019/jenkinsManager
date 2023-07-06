@@ -4,6 +4,8 @@ import axios from 'axios';
 import data from './data.json'
 import {useHistory} from 'react-router-dom';
 import Select from 'react-select';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 function  GetCredentials() {
   const history = useHistory();
@@ -76,18 +78,24 @@ function  GetCredentials() {
   // let customStr;
   const getCreds = (event) => {
     // console.log(selectedOptions[0].value);
-      for(let i=0 ; i< selectedOptions.length ; i++){
-        // customStr = `option${i+1}`;
-        //  if(checkboxes[customStr]){
-        //    getItems(event,baseUrls[i],keys[i],users[i]);
-        //  }
-        let selectedNo = selectedOptions[i].value;
-        getItems(event,baseUrls[selectedNo],keys[selectedNo],users[selectedNo]);
-       }
-       setShowTable(true);
+      if(selectedOptions.length == 0){
+        toast("Please select atleast one jenkins!!")
+      }
+      else{
+        for(let i=0 ; i< selectedOptions.length ; i++){
+          // customStr = `option${i+1}`;
+          //  if(checkboxes[customStr]){
+          //    getItems(event,baseUrls[i],keys[i],users[i]);
+          //  }
+          let selectedNo = selectedOptions[i].value;
+          getItems(event,baseUrls[selectedNo],keys[selectedNo],users[selectedNo]);
+         }
+         setShowTable(true);
+      }
   }
   let finalItems = [];
   let commonArray = [];
+
   const getItems = async (event,url,key,user) => {
     event.preventDefault();
     const uniqueKey = await fetchKey(key);
@@ -102,11 +110,15 @@ function  GetCredentials() {
       console.log(response.data.crumb);
       setCrumb(response.data.crumb)
     })
+    .catch(error => {
+      toast("Jenkins server timeout!")
+      return;
+    })
     // console.log(crumb);
     config.headers['Jenkins-Crumb'] = crumb
     config.headers['Content-Type'] = 'application/json'
     
-    console.log(config);
+    // console.log(config);
     await axios.get(`${url}manage/credentials/store/system/domain/_/api/json?tree=credentials[id,description,typeName]`,config)
       .then(response => {
         if(finalItems.length == 0){
@@ -123,6 +135,7 @@ function  GetCredentials() {
       })
       .catch(error => {
         console.error('Error retrieving items:', error);
+        toast("Body not well formed!")
       });
   };
 
@@ -135,6 +148,7 @@ function  GetCredentials() {
 
   return (
 <div className="getcredential">
+    <ToastContainer/>
     <div className="select-jenkins">
           {/* <label>Select Jenkins:</label>I */}
           <Select
