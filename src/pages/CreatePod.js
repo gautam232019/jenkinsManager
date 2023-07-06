@@ -64,7 +64,7 @@ const CreatePod = () => {
     
     const options = [];
     for(let i=0 ; i<baseUrls.length ; i++){
-        options.push({ value: i, label: `Jenkins ${i+1}` });
+        options.push({ value: i, label: keys[i] });
     }
 
     const usageOptions = [];
