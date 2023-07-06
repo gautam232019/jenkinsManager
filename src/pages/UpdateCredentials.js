@@ -209,7 +209,7 @@ const UpdateCredentals = (props) => {
             "description": predescription
           };
         }
-        const key = await fetchKey(uniqueKey);
+        // const key = await fetchKey(uniqueKey);
         const Item = { 'json':  JSON.stringify(json)}
         const auth =`${user}:${key}`
     
