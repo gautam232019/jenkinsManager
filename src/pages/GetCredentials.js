@@ -99,7 +99,8 @@ function  GetCredentials() {
   const getItems = async (event,url,key,user) => {
     event.preventDefault();
     // const uniqueKey = await fetchKey(key);
-    const auth =`${user}:${key}`
+    console.log(user);
+    const auth =`${user}:${"8299b258f6d44eb99733e3c25e790992"}`
     const config = {
       headers: {
         Authorization: `Basic ${btoa(auth.toString())}`

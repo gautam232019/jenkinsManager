@@ -211,7 +211,7 @@ const UpdateCredentals = (props) => {
         }
         // const key = await fetchKey(uniqueKey);
         const Item = { 'json':  JSON.stringify(json)}
-        const auth =`${user}:${key}`
+        const auth =`${user}:${uniqueKey}`
     
         const config = {
           headers: {
