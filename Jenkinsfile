@@ -9,7 +9,9 @@ pipeline {
         stage('Start Backend Server') {
             steps {
                 script {
-                   sh 'node backend/server.js'
+                   sh 'cd backend'
+                   sh 'npm install'
+                   sh 'node server.js'
                 }
             }
         }
