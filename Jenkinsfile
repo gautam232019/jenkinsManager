@@ -11,7 +11,7 @@ pipeline {
                 script {
                    sh 'cd backend'
                    sh 'npm install'
-                   sh 'node server.js'
+                   sh 'node backend/server.js'
                 }
             }
         }
