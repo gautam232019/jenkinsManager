@@ -1,8 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import AWS from 'aws-sdk';
 import axios from 'axios';
 import qs from 'qs';
-import { useEffect } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Select from 'react-select';
@@ -104,11 +103,8 @@ function CreateCredentials() {
     }
     else{
       for(let i=0 ; i< selectedOptions.length ; i++){
-        //  customStr = `option${i+1}`;
-        //   if(checkboxes[customStr]){
-        //     createItem(event,baseUrls[i],keys[i],users[i]);
         let selectedNo = selectedOptions[i].value;
-        createItem(event,baseUrls[selectedNo],keys[selectedNo],users[selectedNo]);
+        createItem(event,baseUrls[selectedNo],process.env.REACT_APP_API_TOKEN,users[selectedNo]);
         }
     }
     // setIsLoading(false);

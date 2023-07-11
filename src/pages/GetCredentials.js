@@ -9,7 +9,6 @@ import 'react-toastify/dist/ReactToastify.css';
 
 function  GetCredentials() {
   const history = useHistory();
-
   const [crumb, setCrumb] = useState('')
   const [items, setItems] = useState([]);
   const [selectall, setSelectall] = useState(false)
@@ -28,22 +27,6 @@ function  GetCredentials() {
   const handleOptionChange = (selected) => {
     setSelectedOptions(selected);
   };
- 
-    // let obj = {};
-    // for(let i=0 ; i<baseUrls.length ; i++){
-    //     obj[`option${i+1}`] = false;
-    // }
-    // const [checkboxes, setCheckboxes] = useState(obj);
-
-
-  // const handleCheckboxChange = (event) => {
-  //   const { name, checked } = event.target;
-  //   console.log(name);
-  //   setCheckboxes(prevState => ({
-  //     ...prevState,
-  //     [name]: checked
-  //   }));
-  // };
 
   const getData = async () => {
     await axios.get(`${process.env.REACT_APP_URL}:3001/api/data`)
@@ -88,7 +71,7 @@ function  GetCredentials() {
           //    getItems(event,baseUrls[i],keys[i],users[i]);
           //  }
           let selectedNo = selectedOptions[i].value;
-          getItems(event,baseUrls[selectedNo],keys[selectedNo],users[selectedNo]);
+          getItems(event,baseUrls[selectedNo],process.env.REACT_APP_API_TOKEN,users[selectedNo]);
          }
          setShowTable(true);
       }
@@ -100,7 +83,7 @@ function  GetCredentials() {
     event.preventDefault();
     // const uniqueKey = await fetchKey(key);
     console.log(user);
-    const auth =`${user}:${"8299b258f6d44eb99733e3c25e790992"}`
+    const auth =`${user}:${key}`
     const config = {
       headers: {
         Authorization: `Basic ${btoa(auth.toString())}`

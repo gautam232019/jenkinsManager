@@ -92,36 +92,12 @@ const UpdateCredentals = (props) => {
     const [passphrase,setPassphrase] = useState("")
     const [secretText,setSecretText] = useState("")
     const [selectAll,setSelectAll] = useState(false)
-    // const [isLoading,setIsLoading] = useState(false)
-    
-    // const baseUrls = ['http://3.135.18.230:8080/','http://3.128.203.238:8080/']
-    // const keys = ['jenkin1','jenkin2'];
-    // const users = ['manas','gautam'];
 
     let obj = {};
     for(let i=0 ; i<baseUrls.length ; i++){
         obj[`option${i+1}`] = false;
     }
     const [checkboxes, setCheckboxes] = useState(obj);
-  
-      const handleCheckboxChange = (event) => {
-        const { name, checked } = event.target;
-        console.log(name);
-        setCheckboxes(prevState => ({
-          ...prevState,
-          [name]: checked
-        }));
-      };
-
-      const handleSelectAllChange = () => {
-        const updatedCheckboxes = checkboxes.map((checkbox) => ({
-          ...checkbox,
-          checked: !selectAll
-        }));
-        setCheckboxes(updatedCheckboxes);
-        console.log(checkboxes);
-        setSelectAll(!selectAll);
-      };
 
       const handleOptionChange = (event) => {
         setSelectedOption(event.target.value);
@@ -209,7 +185,7 @@ const UpdateCredentals = (props) => {
             "description": predescription
           };
         }
-        // const key = await fetchKey(uniqueKey);
+        
         const Item = { 'json':  JSON.stringify(json)}
         const auth =`${user}:${uniqueKey}`
     
@@ -254,24 +230,17 @@ const UpdateCredentals = (props) => {
       let customStr;
       let handleSubmit = async (event) => {
         event.preventDefault();
-        // setIsLoading(true)
         for(let i=0 ; i< selectedOptions.length ; i++){
             let selectedNo = selectedOptions[i].value;
-            updateItem(event,baseUrls[selectedNo],keys[selectedNo],users[selectedNo]);
-        //  customStr = `option${i+1}`;
-        //   if(checkboxes[customStr]){
-        //     updateItem(event,baseUrls[i],keys[i],users[i]);
-        //   }
+            updateItem(event,baseUrls[selectedNo],process.env.REACT_APP_API_TOKEN,users[selectedNo]);
         }
         history.goBack();
-        // setIsLoading(false);
       }
 
 
       let custom;
       let handleDelete = async (event) => {
         event.preventDefault();
-        // setIsLoading(true)
         const confirmDelete = window.confirm('Are you sure you want to delete?');
         if (confirmDelete) {
         let counter = 0;
@@ -330,14 +299,12 @@ const UpdateCredentals = (props) => {
             <input
               type="text"
               value={realid}
-            //   onChange={event => setRealid(event.target.value)}
               className='fixedFields'
               placeholder="Item id"
             />
             <input
               type="text"
               value={scope}
-            //   onChange={event => setScope(event.target.value)}
               className='fixedFields'
               placeholder="Item scope"
             />
@@ -374,7 +341,6 @@ const UpdateCredentals = (props) => {
               type="text"
               value={realid}
               className='fixedFields'
-            //   onChange={event => setRealid(event.target.value)}
               placeholder="Item id"
             />
             <input
@@ -434,7 +400,6 @@ const UpdateCredentals = (props) => {
               type="text"
               value={realid}
               className='fixedFields'
-            //   onChange={event => setRealid(event.target.value)}
               placeholder="Item id"
             />
             <input
@@ -466,88 +431,15 @@ const UpdateCredentals = (props) => {
         <div className='createcredential'>
             <ToastContainer/>
             <div style={{marginLeft:'8%'}} className="select-jenkins">
-          {/* <label>Select Jenkins:</label>I */}
           <Select
             isMulti
             options={options}
             value={selectedOptions}
             onChange={handleJenkinsOptionChange}
           />
-          {/* <div>
-            Selected options:
-            {selectedOptions.map((option) => (
-              <span key={option.value}>{option.label}, </span>
-            ))}
-          </div> */}
+          
     </div>
             <div className="checkbox-container">
-      {/* <h1>Checkbox Example</h1> */}
-      {/* <label className="checkbox-label">
-        <input
-          type="checkbox"
-          name="option1"
-          checked={checkboxes.option1}
-          onChange={handleCheckboxChange}
-          // style={{marginLeft:'10px'}}
-        />
-        <span className="checkmark"></span>
-        Jenkin 1
-      </label>
-      <label className="checkbox-label">
-        <input
-          type="checkbox"
-          name="option2"
-          checked={checkboxes.option2}
-          onChange={handleCheckboxChange}
-        />
-        <span className="checkmark"></span>
-        Jenkin 2
-      </label>
-      <label className="checkbox-label">
-        <input
-          type="checkbox"
-          name="option3"
-          checked={checkboxes.option3}
-          onChange={handleCheckboxChange}
-        />
-        <span className="checkmark"></span>
-        Jenkin 3
-      </label>
-      <label className="checkbox-label">
-        <input
-          type="checkbox"
-          name="option4"
-          checked={selectAll}
-          onChange={handleSelectAllChange}
-        />
-        <span className="checkmark"></span>
-        Select All
-      </label> */}
-      {/* <label className="checkbox-label">
-        <input
-          type="checkbox"
-          name={`selectall`}
-          checked={selectall}
-          onChange={handleCheckboxChange}
-          style={{marginLeft:'10px'}}
-        />
-        <span className="checkmark"></span>
-        {`Select All`}
-      </label> */}
-      {/* {
-        baseUrls.map((item,index) => (
-      <label className="checkbox-label">
-        <input
-          type="checkbox"
-          name={`option${index+1}`}
-          checked={checkboxes[`option${index+1}`]}
-          onChange={handleCheckboxChange}
-          // style={{marginLeft:'10px'}}
-        />
-        <span className="checkmark"></span>
-        {`Jenkins ${index+1}`}
-      </label>
-        ))} */}
     </div>
       <div style={{marginTop:'2%',width:'60%',alignItems:'center',display:'inline-block',marginLeft:'10%'}}>
         <div style={{marginLeft:'80px'}}>
