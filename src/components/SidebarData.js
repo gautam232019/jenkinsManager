@@ -36,7 +36,7 @@ export const SidebarData = [
   },
   {
     title: 'Get Pod Templates',
-    path: '/',
+    path: '/getpods',
     icon: <IoIcons.IoIosPaper/>,
     cName: 'nav-text'
   },

@@ -8,6 +8,7 @@ import CreateCredentials from './pages/CreateCredentials';
 import GetCredentials from './pages/GetCredentials';
 import UpdateCredentals from './pages/UpdateCredentials';
 import CreatePod from './pages/CreatePod';
+import GetPodTemplates from './pages/GetPodTemplates'
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
           <Route path='/createcredentials' component={CreateCredentials} />
           <Route path='/updatecredentials' component={UpdateCredentals} />
           <Route path='/createpod' component={CreatePod} />
+          <Route path='/getpods' component={GetPodTemplates}/>
         </Switch>
       </Router>
     </>

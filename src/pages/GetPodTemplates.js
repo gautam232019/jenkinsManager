@@ -7,6 +7,7 @@ import {useHistory} from 'react-router-dom';
 import Select from 'react-select';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import {xml2js} from 'xml-js';
 
 function  GetCredentials() {
   
@@ -79,6 +80,68 @@ function  GetCredentials() {
          setShowTable(true);
       }
   }
+  
+  function parseXmlToJson(xmlString) {
+    const parser = new DOMParser();
+    const xmlDoc = parser.parseFromString(xmlString, 'text/xml');
+  
+    const rootElement = xmlDoc.documentElement;
+    return parseElement(rootElement);
+  }
+  
+  function parseElement(element) {
+    const json = {};
+  
+    if (element.hasAttributes()) {
+      const attributes = element.attributes;
+      for (let i = 0; i < attributes.length; i++) {
+        const attribute = attributes[i];
+        json[`@${attribute.name}`] = attribute.value;
+      }
+    }
+  
+    if (element.hasChildNodes()) {
+      const childNodes = element.childNodes;
+  
+      for (let i = 0; i < childNodes.length; i++) {
+        const childNode = childNodes[i];
+  
+        if (childNode.nodeType === Node.ELEMENT_NODE) {
+          const tagName = childNode.tagName;
+          const value = parseElement(childNode);
+  
+          if (childNode.hasChildNodes() && childNode.childNodes.length === 1 && childNode.firstChild.nodeType === Node.TEXT_NODE) {
+            json[tagName] = childNode.firstChild.textContent.trim();
+          } else {
+            if (json.hasOwnProperty(tagName)) {
+              if (!Array.isArray(json[tagName])) {
+                json[tagName] = [json[tagName]];
+              }
+  
+              json[tagName].push(value);
+            } else {
+              json[tagName] = value;
+            }
+          }
+        }
+      }
+    }
+  
+    return json;
+  }
+  
+  
+  
+  
+  
+
+  const getTagValue = (xmlString) => {
+    let startIndex = xmlString.indexOf('h')-1;
+    // console.log(xmlString.substring(startIndex));
+    let json = parseXmlToJson(xmlString.substring(startIndex));
+    // console.log(json.clouds);
+    return JSON.parse(JSON.stringify(json),null,2);
+  }
 
   //global variables for item array
   let finalItems = [];
@@ -87,44 +150,38 @@ function  GetCredentials() {
   const getItems = async (event,url,key,user) => {
     event.preventDefault();
     // const uniqueKey = await fetchKey(key);
-    console.log(user);
+    // console.log(user);
+
+    //script code for getting config.xml
+    const script = "def configFile = new File(Jenkins.getInstance().getRootDir(), 'config.xml'); def configFileContent = configFile.text; return configFileContent";
+    const Item = { 'script':  script}
     const auth =`${user}:${key}`
+
     const config = {
       headers: {
         Authorization: `Basic ${btoa(auth.toString())}`
       }
     }
+
     await axios.get(`${url}crumbIssuer/api/json`,config)
     .then(response => {
-      console.log(response.data.crumb);
       setCrumb(response.data.crumb)
     })
-    .catch(error => {
-      toast("Jenkins server timeout!")
-      return;
+
+    const config2 = {headers: {
+      Authorization: `Basic ${btoa(auth.toString())}`,
+      'Jenkins-Crumb': crumb,
+      'Content-Type': 'application/x-www-form-urlencoded'
+    }};
+    await axios.post(`${url}scriptText`,Item,
+    config2)
+      .then((response) => {
+        const item = getTagValue(response.data);
+        console.log(item);
+        console.log(response.data);
     })
-    // console.log(crumb);
-    config.headers['Jenkins-Crumb'] = crumb
-    config.headers['Content-Type'] = 'application/json'
-    
-    // console.log(config);
-    await axios.get(`${url}manage/credentials/store/system/domain/_/api/json?tree=credentials[id,description,typeName]`,config)
-      .then(response => {
-        if(finalItems.length == 0){
-          finalItems = [...finalItems,...response.data.credentials];
-          commonArray = finalItems;
-        }
-        // let uniqueArray = Array.from(new Set(finalItems.map(JSON.stringify)), JSON.parse);
-        // console.log(response.data.credentials);
-        commonArray = commonArray.filter((item) =>
-          response.data.credentials.some((credItem) => credItem.id === item.id)
-        );
-        setItems(commonArray);
-        // console.log(commonArray);
-      })
       .catch(error => {
-        console.error('Error retrieving items:', error);
-        toast("Body not well formed!")
+        console.error('Error creating item:', error);
       });
   };
   

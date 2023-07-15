@@ -95,7 +95,7 @@ function CreateCredentials() {
       throw error;
     }
   }
-  let customStr;
+  
   let handleSubmit = (event) => {
     event.preventDefault();
     if(selectedOptions.length == 0){

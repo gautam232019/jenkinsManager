@@ -1,10 +1,14 @@
 import React,{useState,useEffect} from 'react';
 import axios from 'axios';
+import { ToastContainer, toast } from 'react-toastify';
+import qs from 'qs';
 import Select from 'react-select';
 
 const CreatePod = () => {
     const [name,setName] = useState('')
+    const [queryResponse,setQueryResponse] = useState()
     const [baseUrls,setBaseurls] = useState([]);
+    const [crumb, setCrumb] = useState('')
     const [namespace,setNamespace] = useState('');
     const [label,setLabel] = useState('')
     const [keys,setKeys] = useState([]);
@@ -14,8 +18,8 @@ const CreatePod = () => {
     const [volume,setVolume] = useState('')
     const [yamlMerge,setYamlMerge] = useState('')
     const [containerName,setContainerName] = useState('');
-    let [formVisible,setFormVisible] = useState(0);
-    let [volumeFormVisible,setVolumeFormVisible] = useState(0);
+    let   [formVisible,setFormVisible] = useState(0);
+    let   [volumeFormVisible,setVolumeFormVisible] = useState(0);
     const [dockerImage,setDockerImage] = useState('');
     const [wdir,setWdir] = useState('');
     const [command,setCommand] = useState('');
@@ -29,6 +33,355 @@ const CreatePod = () => {
         option: false
     })
     
+
+
+    let handleSubmit = (event) => {
+        event.preventDefault();
+        if(selectedOptions.length == 0){
+          toast("Please select atleast on jenkins!!")
+        }
+        else{
+          for(let i=0 ; i< selectedOptions.length ; i++){
+            let selectedNo = selectedOptions[i].value;
+            createPod(event,baseUrls[selectedNo],process.env.REACT_APP_API_TOKEN,users[selectedNo]);
+            }
+        }
+        // setIsLoading(false);
+      }
+    
+      let createPod = async (event,url,uniqueKey,user) => {
+        event.preventDefault();
+        // const key = await fetchKey(uniqueKey);
+        // const Item = { 'json':  JSON.stringify(json)}
+        const auth =`${user}:${uniqueKey}`
+    
+        const config = {
+          headers: {
+            Authorization: `Basic ${btoa(auth.toString())}`
+          }
+        }
+    
+        await axios.get(`${url}crumbIssuer/api/json`,config)
+        .then(response => {
+          console.log(response.data.crumb);
+          setCrumb(response.data.crumb)
+        })
+    
+        const config2 = {headers: {
+          Authorization: `Basic ${btoa(auth.toString())}`,
+          'Jenkins-Crumb': crumb,
+          'Content-Type': 'application/x-www-form-urlencoded'
+        }};
+        let query = `import jenkins.model.Jenkins
+        import groovy.json.JsonBuilder
+        def cloudsData = []
+        Jenkins.instance.clouds.each { cloud ->
+            if (cloud.class.simpleName == 'KubernetesCloud') {
+                def cloudData = [:]
+                cloudData.name = cloud.name
+                cloudData.type = cloud.class.name
+                cloudData.options = [:]
+                cloudData.options.serverUrl = cloud.serverUrl
+                cloudData.options.jenkinsUrl = cloud.jenkinsUrl
+                cloudData.options.credentialsId = cloud.credentialsId
+                cloudData.options.containerCap = cloud.containerCap
+                cloudData.options.templates = []
+                cloud.templates.each { template ->
+                    def podTemplate = [:]
+                    podTemplate.id = template.id
+                    podTemplate.name = template.name
+                    podTemplate.label = template.label
+                    podTemplate.namespace = template.namespace
+                    podTemplate.containerTemplates = []
+                    template.containers.each { container ->
+                        def containerData = [:]
+                        containerData.name = container.name
+                        containerData.image = container.image
+                        containerData.args = container.args
+                        containerData.command = container.command
+                        containerData.resources = [:]
+                        containerData.resources.cpu = container.resourceRequestCpu
+                        containerData.resources.memory = container.resourceRequestMemory
+                        // Add more container properties as needed
+                        podTemplate.containerTemplates << containerData
+                    }
+                    podTemplate.volumes = []
+                    template.volumes.each { volume ->
+                        if (volume instanceof org.csanchez.jenkins.plugins.kubernetes.volumes.ConfigMapVolume ||
+                                volume instanceof org.csanchez.jenkins.plugins.kubernetes.volumes.EmptyDirVolume) {
+                            def volumeData = [:]
+                            volumeData.class = volume.getClass().getName()
+                            if (volume instanceof org.csanchez.jenkins.plugins.kubernetes.volumes.ConfigMapVolume) {
+                                def configMapVolume = (org.csanchez.jenkins.plugins.kubernetes.volumes.ConfigMapVolume) volume
+                                volumeData.name = configMapVolume.configMapName
+                                volumeData.mountPath = configMapVolume.mountPath
+                                volumeData.type = 'ConfigMap'
+                                // Add more ConfigMap volume properties as needed
+                            } else if (volume instanceof org.csanchez.jenkins.plugins.kubernetes.volumes.EmptyDirVolume) {
+                                def emptyDirVolume = (org.csanchez.jenkins.plugins.kubernetes.volumes.EmptyDirVolume) volume
+                                volumeData.name = emptyDirVolume.mountPath
+                                volumeData.type = 'EmptyDir'
+                                // Add more EmptyDir volume properties as needed
+                            }
+                            podTemplate.volumes << volumeData
+                        }
+                    }
+                    podTemplate.nodeSelector = template.nodeSelector
+                    podTemplate.serviceAccount = template.serviceAccount
+                    podTemplate.privileged = template.privileged
+                    // Add more pod template properties as needed
+                    cloudData.options.templates << podTemplate
+                }
+                cloudsData << cloudData
+            }
+        }
+        def json = new JsonBuilder(cloudsData)
+        println(json.toPrettyString())
+        ` 
+        let queryResult;
+        let templateLength;
+        let Item = {'script': query};
+        await axios.post(`${url}scriptText`,Item,
+        config2)
+          .then((response) => {
+            console.log(response.data[0].name);
+            queryResult = response.data[0];
+            templateLength = response.data[0].options.templates.length;
+          })
+          .catch(error => {
+            console.error('Error getting query:', error);
+          });
+
+          let json = {
+            "cloud": {
+              "stapler-class": "org.csanchez.jenkins.plugins.kubernetes.KubernetesCloud",
+              "$class": "org.csanchez.jenkins.plugins.kubernetes.KubernetesCloud",
+              "name": queryResult.name,
+              "serverUrl": queryResult.options.serverUrl,
+              "useJenkinsProxy": false,
+              "serverCertificate": "",
+              "skipTlsVerify": false,
+              "namespace": "",
+              "jnlpregistry": "",
+              "includeUser": "false",
+              "credentialsId": "",
+              "webSocket": false,
+              "directConnection": false,
+              "jenkinsUrl": queryResult.options.jenkinsUrl,
+              "jenkinsTunnel": "",
+              "connectTimeout": "5",
+              "readTimeout": "15",
+              "containerCapStr": "10",
+              "podLabels": {
+                "stapler-class": "org.csanchez.jenkins.plugins.kubernetes.PodLabel",
+                "$class": "org.csanchez.jenkins.plugins.kubernetes.PodLabel",
+                "key": "jenkins",
+                "value": "slave"
+              },
+              "": "1",
+              "podRetention": {
+                "stapler-class": "org.csanchez.jenkins.plugins.kubernetes.pod.retention.Never",
+                "$class": "org.csanchez.jenkins.plugins.kubernetes.pod.retention.Never"
+              },
+              "maxRequestsPerHostStr": "32",
+              "waitForPodSec": "600",
+              "retentionTimeout": "5",
+              "addMasterProxyEnvVars": false,
+              "usageRestricted": false,
+              "defaultsProviderTemplate": "",
+              "templates": [
+                
+              ]
+            }
+        };
+
+        for(let i=0 ; i<templateLength ; i++){
+          let containerLength = queryResult.options.templates[i].containerTemplates.length;
+          let volumeLength = queryResult.options.templates[i].volumes.length;
+          let template = {
+            "id": queryResult.options.templates[i].id,
+            "name": queryResult.options.templates[i].name,
+            "namespace": "",
+            "label": queryResult.options.templates[i].label,
+            "nodeUsageMode": "EXCLUSIVE",
+            "inheritFrom": "",
+            "containers": [],
+            "volumes": [],
+            "instanceCapStr": "",
+            "": [
+              "1",
+              "1",
+              "1"
+            ],
+            "podRetention": {
+              "stapler-class": "org.csanchez.jenkins.plugins.kubernetes.pod.retention.Default",
+              "$class": "org.csanchez.jenkins.plugins.kubernetes.pod.retention.Default"
+            },
+            "idleMinutesStr": "",
+            "activeDeadlineSecondsStr": "",
+            "slaveConnectTimeoutStr": "100",
+            "yaml": "",
+            "yamlMergeStrategy": {
+              "stapler-class": "org.csanchez.jenkins.plugins.kubernetes.pod.yaml.Overrides",
+              "$class": "org.csanchez.jenkins.plugins.kubernetes.pod.yaml.Overrides"
+            },
+            "showRawYaml": true,
+            "serviceAccount": "",
+            "runAsUser": "",
+            "runAsGroup": "",
+            "supplementalGroups": "",
+            "hostNetwork": false,
+            "nodeSelector": queryResult.options.templates[i].nodeSelector,
+            "workspaceVolume": {
+              "memory": false,
+              "stapler-class": "org.csanchez.jenkins.plugins.kubernetes.volumes.workspace.EmptyDirWorkspaceVolume",
+              "$class": "org.csanchez.jenkins.plugins.kubernetes.volumes.workspace.EmptyDirWorkspaceVolume"
+            },
+            "nodeProperties": {
+              "stapler-class-bag": "true"
+            }
+          }
+          json.cloud.templates.push(template);
+          for(let j=0 ; j<containerLength ; j++){
+              let container = {
+                "stapler-class": "org.csanchez.jenkins.plugins.kubernetes.ContainerTemplate",
+                "$class": "org.csanchez.jenkins.plugins.kubernetes.ContainerTemplate",
+                "name": queryResult.options.templates[i].containerTemplates[j].name,
+                "image": queryResult.options.templates[i].containerTemplates[j].image,
+                "alwaysPullImage": false,
+                "workingDir": "/home/jenkins/agent",
+                "command": queryResult.options.templates[i].containerTemplates[j].command,
+                "args": queryResult.options.templates[i].containerTemplates[j].args,
+                "ttyEnabled": true,
+                "privileged": false,
+                "runAsUser": "",
+                "runAsGroup": "",
+                "resourceRequestCpu": "",
+                "resourceRequestMemory": "",
+                "resourceRequestEphemeralStorage": "",
+                "resourceLimitCpu": "",
+                "resourceLimitMemory": "",
+                "resourceLimitEphemeralStorage": "",
+                "livenessProbe": {
+                  "execArgs": "",
+                  "initialDelaySeconds": "0",
+                  "timeoutSeconds": "0",
+                  "failureThreshold": "0",
+                  "periodSeconds": "0",
+                  "successThreshold": "0"
+                }
+              }
+              json.cloud.templates[i].containers.push(container);
+          }
+          for(let k=0 ; k<volumeLength ; k++){
+            let volume = {
+              "stapler-class": queryResult.options.templates[i].volumes[k].class,
+              "$class": queryResult.options.templates[i].volumes[k].class,
+              "configMapName": queryResult.options.templates[i].volumes[k].name,
+              "mountPath": queryResult.options.templates[i].volumes[k].mountPath,
+              "subPath": "",
+              "optional": false
+            }
+            json.cloud.templates[i].volumes.push(volume);
+          }
+        }
+        // console.log(json);
+
+        //add new template to the json object
+        let newTemplate = {
+          "id": "",
+          "name": name,
+          "namespace": namespace,
+          "label": label,
+          "nodeUsageMode": "EXCLUSIVE",
+          "inheritFrom": "",
+          "containers": [],
+          "volumes": [],
+          "instanceCapStr": "",
+          "": [
+            "1",
+            "1",
+            "1"
+          ],
+          "podRetention": {
+            "stapler-class": "org.csanchez.jenkins.plugins.kubernetes.pod.retention.Default",
+            "$class": "org.csanchez.jenkins.plugins.kubernetes.pod.retention.Default"
+          },
+          "idleMinutesStr": "",
+          "activeDeadlineSecondsStr": "",
+          "slaveConnectTimeoutStr": "100",
+          "yaml": "",
+          "yamlMergeStrategy": {
+            "stapler-class": "org.csanchez.jenkins.plugins.kubernetes.pod.yaml.Overrides",
+            "$class": "org.csanchez.jenkins.plugins.kubernetes.pod.yaml.Overrides"
+          },
+          "showRawYaml": true,
+          "serviceAccount": "",
+          "runAsUser": "",
+          "runAsGroup": "",
+          "supplementalGroups": "",
+          "hostNetwork": false,
+          "nodeSelector": "",
+          "workspaceVolume": {
+            "memory": false,
+            "stapler-class": "org.csanchez.jenkins.plugins.kubernetes.volumes.workspace.EmptyDirWorkspaceVolume",
+            "$class": "org.csanchez.jenkins.plugins.kubernetes.volumes.workspace.EmptyDirWorkspaceVolume"
+          },
+          "nodeProperties": {
+            "stapler-class-bag": "true"
+          }
+        }
+        json.cloud.templates.push(newTemplate);
+        let newContainer = {
+          "stapler-class": "org.csanchez.jenkins.plugins.kubernetes.ContainerTemplate",
+          "$class": "org.csanchez.jenkins.plugins.kubernetes.ContainerTemplate",
+          "name": containerName,
+          "image": dockerImage,
+          "alwaysPullImage": false,
+          "workingDir": "/home/jenkins/agent",
+          "command": command,
+          "args": argument,
+          "ttyEnabled": true,
+          "privileged": false,
+          "runAsUser": "",
+          "runAsGroup": "",
+          "resourceRequestCpu": "",
+          "resourceRequestMemory": "",
+          "resourceRequestEphemeralStorage": "",
+          "resourceLimitCpu": "",
+          "resourceLimitMemory": "",
+          "resourceLimitEphemeralStorage": "",
+          "livenessProbe": {
+            "execArgs": "",
+            "initialDelaySeconds": "0",
+            "timeoutSeconds": "0",
+            "failureThreshold": "0",
+            "periodSeconds": "0",
+            "successThreshold": "0"
+          }
+        }
+        json.cloud.templates[json.cloud.templates.length-1].containers.push(newContainer)
+        console.log(volume);
+        // let newVolume = {
+        //   "stapler-class": queryResult.options.templates[i].volumes[k].class,
+        //   "$class": queryResult.options.templates[i].volumes[k].class,
+        //   "configMapName": queryResult.options.templates[i].volumes[k].name,
+        //   "mountPath": queryResult.options.templates[i].volumes[k].mountPath,
+        //   "subPath": "",
+        //   "optional": false
+        // }
+
+        Item = {'json': JSON.stringify(json)}
+        await axios.post(`${url}manage/configureClouds/configure`,qs.stringify(Item),config2)
+        .then(response => {
+            console.log(response);
+        })
+        .catch(error => {
+            console.log(error);
+        })
+      };
+
+
     const handleTtyCheckboxChange = (event) => {
         const {name,checked} = event.target;
         setTtyCheckbox(prevState => ({
@@ -110,7 +463,7 @@ const CreatePod = () => {
     }
     // console.log(volume);
     const renderVolumeForm = () => {
-        console.log(volume);
+        // console.log(volume);
         if(volume.value == "Empty Dir Volume"){
             return (
                 <div>
@@ -278,7 +631,7 @@ const CreatePod = () => {
                     <button
                         type='button'
                         style={{width:'200px',marginBottom:'50px'}}
-                        onClick={showContainerForm}
+                        onClick={handleSubmit}
                     >Create Template</button>
                 </form>
             </div>
