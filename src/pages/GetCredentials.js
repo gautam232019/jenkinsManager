@@ -114,13 +114,10 @@ function  GetCredentials() {
           finalItems = [...finalItems,...response.data.credentials];
           commonArray = finalItems;
         }
-        // let uniqueArray = Array.from(new Set(finalItems.map(JSON.stringify)), JSON.parse);
-        // console.log(response.data.credentials);
         commonArray = commonArray.filter((item) =>
           response.data.credentials.some((credItem) => credItem.id === item.id)
         );
         setItems(commonArray);
-        // console.log(commonArray);
       })
       .catch(error => {
         console.error('Error retrieving items:', error);

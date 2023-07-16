@@ -7,7 +7,6 @@ import {useHistory} from 'react-router-dom';
 import Select from 'react-select';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import {xml2js} from 'xml-js';
 
 function  GetCredentials() {
   
@@ -20,10 +19,11 @@ function  GetCredentials() {
   const [baseUrls,setBaseurls] = useState([]);
   const [keys,setKeys] = useState([]);
   const [users,setUsers] = useState([]);
+  const [podData,setPodData] = useState();
   const options = [];
   const [selectedOptions, setSelectedOptions] = useState([]);
   
-  //Used for pushing values to select dropdown for controllers
+  //Dropdown for controllers
   for(let i=0 ; i<baseUrls.length ; i++){
     options.push({ value: i, label: keys[i] });
   }
@@ -68,93 +68,28 @@ function  GetCredentials() {
   }
   
   //Functions to get credentials from a controller
-  const getCreds = (event) => {
+  const getPodTemplates = (event) => {
       if(selectedOptions.length == 0){
         toast("Please select atleast one jenkins!!")
       }
       else{
         for(let i=0 ; i< selectedOptions.length ; i++){
           let selectedNo = selectedOptions[i].value;
-          getItems(event,baseUrls[selectedNo],process.env.REACT_APP_API_TOKEN,users[selectedNo]);
+          getPod(event,baseUrls[selectedNo],process.env.REACT_APP_API_TOKEN,users[selectedNo]);
          }
          setShowTable(true);
       }
   }
   
-  function parseXmlToJson(xmlString) {
-    const parser = new DOMParser();
-    const xmlDoc = parser.parseFromString(xmlString, 'text/xml');
-  
-    const rootElement = xmlDoc.documentElement;
-    return parseElement(rootElement);
-  }
-  
-  function parseElement(element) {
-    const json = {};
-  
-    if (element.hasAttributes()) {
-      const attributes = element.attributes;
-      for (let i = 0; i < attributes.length; i++) {
-        const attribute = attributes[i];
-        json[`@${attribute.name}`] = attribute.value;
-      }
-    }
-  
-    if (element.hasChildNodes()) {
-      const childNodes = element.childNodes;
-  
-      for (let i = 0; i < childNodes.length; i++) {
-        const childNode = childNodes[i];
-  
-        if (childNode.nodeType === Node.ELEMENT_NODE) {
-          const tagName = childNode.tagName;
-          const value = parseElement(childNode);
-  
-          if (childNode.hasChildNodes() && childNode.childNodes.length === 1 && childNode.firstChild.nodeType === Node.TEXT_NODE) {
-            json[tagName] = childNode.firstChild.textContent.trim();
-          } else {
-            if (json.hasOwnProperty(tagName)) {
-              if (!Array.isArray(json[tagName])) {
-                json[tagName] = [json[tagName]];
-              }
-  
-              json[tagName].push(value);
-            } else {
-              json[tagName] = value;
-            }
-          }
-        }
-      }
-    }
-  
-    return json;
-  }
-  
-  
-  
-  
-  
-
-  const getTagValue = (xmlString) => {
-    let startIndex = xmlString.indexOf('h')-1;
-    // console.log(xmlString.substring(startIndex));
-    let json = parseXmlToJson(xmlString.substring(startIndex));
-    // console.log(json.clouds);
-    return JSON.parse(JSON.stringify(json),null,2);
-  }
-
   //global variables for item array
   let finalItems = [];
   let commonArray = [];
 
-  const getItems = async (event,url,key,user) => {
+  const getPod = async (event,url,key,user) => {
     event.preventDefault();
     // const uniqueKey = await fetchKey(key);
-    // console.log(user);
 
-    //script code for getting config.xml
-    const script = "def configFile = new File(Jenkins.getInstance().getRootDir(), 'config.xml'); def configFileContent = configFile.text; return configFileContent";
-    const Item = { 'script':  script}
+    
     const auth =`${user}:${key}`
 
     const config = {
@@ -173,12 +108,87 @@ function  GetCredentials() {
       'Jenkins-Crumb': crumb,
       'Content-Type': 'application/x-www-form-urlencoded'
     }};
+
+    //script code for getting config.xml
+    let query = `import jenkins.model.Jenkins
+        import groovy.json.JsonBuilder
+        def cloudsData = []
+        Jenkins.instance.clouds.each { cloud ->
+            if (cloud.class.simpleName == 'KubernetesCloud') {
+                def cloudData = [:]
+                cloudData.name = cloud.name
+                cloudData.type = cloud.class.name
+                cloudData.options = [:]
+                cloudData.options.serverUrl = cloud.serverUrl
+                cloudData.options.jenkinsUrl = cloud.jenkinsUrl
+                cloudData.options.credentialsId = cloud.credentialsId
+                cloudData.options.containerCap = cloud.containerCap
+                cloudData.options.templates = []
+                cloud.templates.each { template ->
+                    def podTemplate = [:]
+                    podTemplate.id = template.id
+                    podTemplate.name = template.name
+                    podTemplate.label = template.label
+                    podTemplate.namespace = template.namespace
+                    podTemplate.containerTemplates = []
+                    template.containers.each { container ->
+                        def containerData = [:]
+                        containerData.name = container.name
+                        containerData.image = container.image
+                        containerData.args = container.args
+                        containerData.command = container.command
+                        containerData.resources = [:]
+                        containerData.resources.cpu = container.resourceRequestCpu
+                        containerData.resources.memory = container.resourceRequestMemory
+                        // Add more container properties as needed
+                        podTemplate.containerTemplates << containerData
+                    }
+                    podTemplate.volumes = []
+                    template.volumes.each { volume ->
+                        if (volume instanceof org.csanchez.jenkins.plugins.kubernetes.volumes.ConfigMapVolume ||
+                                volume instanceof org.csanchez.jenkins.plugins.kubernetes.volumes.EmptyDirVolume) {
+                            def volumeData = [:]
+                            volumeData.class = volume.getClass().getName()
+                            if (volume instanceof org.csanchez.jenkins.plugins.kubernetes.volumes.ConfigMapVolume) {
+                                def configMapVolume = (org.csanchez.jenkins.plugins.kubernetes.volumes.ConfigMapVolume) volume
+                                volumeData.name = configMapVolume.configMapName
+                                volumeData.mountPath = configMapVolume.mountPath
+                                volumeData.type = 'ConfigMap'
+                                // Add more ConfigMap volume properties as needed
+                            } else if (volume instanceof org.csanchez.jenkins.plugins.kubernetes.volumes.EmptyDirVolume) {
+                                def emptyDirVolume = (org.csanchez.jenkins.plugins.kubernetes.volumes.EmptyDirVolume) volume
+                                volumeData.name = emptyDirVolume.mountPath
+                                volumeData.type = 'EmptyDir'
+                                // Add more EmptyDir volume properties as needed
+                            }
+                            podTemplate.volumes << volumeData
+                        }
+                    }
+                    podTemplate.nodeSelector = template.nodeSelector
+                    podTemplate.serviceAccount = template.serviceAccount
+                    podTemplate.privileged = template.privileged
+                    // Add more pod template properties as needed
+                    cloudData.options.templates << podTemplate
+                }
+                cloudsData << cloudData
+            }
+        }
+        def json = new JsonBuilder(cloudsData)
+        println(json.toPrettyString())
+        ` 
+    const Item = { 'script':  query}
     await axios.post(`${url}scriptText`,Item,
     config2)
       .then((response) => {
-        const item = getTagValue(response.data);
-        console.log(item);
-        console.log(response.data);
+        console.log(response);
+        if(finalItems.length == 0){
+          finalItems = [...finalItems,...response.data[0].options.templates];
+          commonArray = finalItems;
+        }
+        commonArray = commonArray.filter((item) =>
+          response.data[0].options.templates.some((templateItem) => templateItem.name === item.name)
+        );
+        setItems(commonArray);
     })
       .catch(error => {
         console.error('Error creating item:', error);
@@ -205,8 +215,8 @@ return (
               onChange={handleOptionChange}
             />
             
-            <button className="delete-btn" style={{backgroundColor:'#367b88',fontSize:'15px',fontWeight: 'bold',marginTop:'20px'}} onClick={getCreds}>
-                Get Credentials
+            <button className="delete-btn" style={{backgroundColor:'#367b88',fontSize:'15px',fontWeight: 'bold',marginTop:'20px'}} onClick={getPodTemplates}>
+                Get Templates
             </button>
       </div>
     {showTable ? 
@@ -214,9 +224,8 @@ return (
           <thead>
             <tr>
               <th>ID</th>
-              <th>Description</th>
-              <th>Type</th>
-              <th>Action</th>
+              <th>NAME</th>
+              <th>LABEL</th>
             </tr>
           </thead>
           <tbody>
@@ -224,16 +233,8 @@ return (
             items.map((item) => (
               <tr key={item.id}>
                 <td>{item.id}</td>
-                <td>{item.description}</td>
-                <td>{item.typeName}</td>
-                <td>
-                  {/* <button className="delete-btn" onClick={() => deleteItem(item.id)}>
-                    Manage
-                  </button> */}
-                  <button className="delete-btn" style={{marginLeft:"5px",backgroundColor:'#367b88',fontSize:'15px'}} onClick={() => updateItem(item)}>
-                    Manage
-                  </button>
-                </td>
+                <td>{item.name}</td>
+                <td>{item.label}</td>
               </tr>
             ))}
           </tbody>

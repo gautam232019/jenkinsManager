@@ -288,6 +288,10 @@ const CreatePod = () => {
         // console.log(json);
 
         //add new template to the json object
+        if(name == "" || namespace == "" || label == ""){
+          toast("Please fill all the values!")
+          return;
+        }
         let newTemplate = {
           "id": "",
           "name": name,
@@ -332,6 +336,10 @@ const CreatePod = () => {
           }
         }
         json.cloud.templates.push(newTemplate);
+        if(containerName == "" || dockerImage == ""){
+          toast("Please fill all the values!")
+          return;
+        }
         let newContainer = {
           "stapler-class": "org.csanchez.jenkins.plugins.kubernetes.ContainerTemplate",
           "$class": "org.csanchez.jenkins.plugins.kubernetes.ContainerTemplate",
@@ -361,20 +369,41 @@ const CreatePod = () => {
           }
         }
         json.cloud.templates[json.cloud.templates.length-1].containers.push(newContainer)
-        console.log(volume);
-        // let newVolume = {
-        //   "stapler-class": queryResult.options.templates[i].volumes[k].class,
-        //   "$class": queryResult.options.templates[i].volumes[k].class,
-        //   "configMapName": queryResult.options.templates[i].volumes[k].name,
-        //   "mountPath": queryResult.options.templates[i].volumes[k].mountPath,
-        //   "subPath": "",
-        //   "optional": false
-        // }
-
+        
+        
+        let newVolume;
+        if(volume.value == "Config Map Volume") {
+          if(configMapName == "" || mountPath == ""){
+            toast("Please fill volume details!")
+            return;
+          }
+          newVolume = {
+            "stapler-class": "org.csanchez.jenkins.plugins.kubernetes.volumes.ConfigMapVolume",
+            "$class": "org.csanchez.jenkins.plugins.kubernetes.volumes.ConfigMapVolume",
+            "configMapName": configMapName,
+            "mountPath": mountPath,
+            "subPath": "",
+            "optional": false
+          }
+        }
+        else{
+          if(mountPath == ""){
+            toast("Please fill volume details!")
+            return;
+          }
+          newVolume = {
+            "stapler-class": "org.csanchez.jenkins.plugins.kubernetes.volumes.EmptyDirVolume",
+            "$class": "org.csanchez.jenkins.plugins.kubernetes.volumes.EmptyDirVolume",
+            "mountPath": mountPath
+          }
+        }
+        json.cloud.templates[json.cloud.templates.length-1].volumes.push(newVolume)
+        console.log(json);
         Item = {'json': JSON.stringify(json)}
         await axios.post(`${url}manage/configureClouds/configure`,qs.stringify(Item),config2)
         .then(response => {
             console.log(response);
+            toast("Succesfully created pod template!")
         })
         .catch(error => {
             console.log(error);
@@ -564,6 +593,7 @@ const CreatePod = () => {
     }
     return (
         <div className='createpod'>
+          <ToastContainer/>
             <div className="select-jenkins">
                 <Select
                     isMulti
