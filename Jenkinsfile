@@ -1,7 +1,7 @@
 pipeline {
     agent {
         node {
-            label 'cje_general_v2'
+            label 'master'
         }
     }
     parameters {
