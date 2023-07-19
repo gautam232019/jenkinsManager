@@ -17,8 +17,8 @@ pipeline {
         stage('Build and Run Docker') {
             steps {
                 script {
-                   sh 'sudo -S docker build -t my-react-app .'
-                   sh "sudo -S docker run -it -d -p 3000:3000 -e REACT_APP_API_TOKEN=${params.REACT_APP_API_TOKEN} -e REACT_APP_URL=${params.REACT_APP_URL} my-react-app"
+                   sh 'docker build -t my-react-app .'
+                   sh "docker run -it -d -p 3000:3000 -e REACT_APP_API_TOKEN=${params.REACT_APP_API_TOKEN} -e REACT_APP_URL=${params.REACT_APP_URL} my-react-app"
                 }
             }
         }
