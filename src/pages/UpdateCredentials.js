@@ -6,6 +6,7 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import {useHistory} from 'react-router-dom';
 import Select from 'react-select';
+import data from './data.json'
 
 
 const UpdateCredentals = (props) => {
@@ -70,8 +71,10 @@ const UpdateCredentals = (props) => {
       })
     }
     useEffect(() => {
-      // this.props.location ? this.props.location.state :  :
-      getData();
+      // getData();
+         setBaseurls(data.data.urls);
+         setUsers(data.data.users);
+         setKeys(data.data.keys);
     }, []);
 
     let preChoice = "";

@@ -5,7 +5,7 @@ import qs from 'qs';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Select from 'react-select';
-// import data from './data.json'
+import data from './data.json'
 
 function CreateCredentials() {
   const [scope, setScope] = useState('GLOBAL');
@@ -43,14 +43,16 @@ function CreateCredentials() {
   const getData = async () => {
     await axios.get(`${process.env.REACT_APP_URL}:3001/api/data`)
     .then(response => {
-     console.log(response.data.data.urls);
-     setBaseurls(response.data.data.urls);
-     setUsers(response.data.data.users);
-     setKeys(response.data.data.keys);
+         setBaseurls(response.data.data.urls);
+         setUsers(response.data.data.users);
+         setKeys(response.data.data.keys);
     })
   }
   useEffect(() => {
-    getData();
+    // getData();
+         setBaseurls(data.data.urls);
+         setUsers(data.data.users);
+         setKeys(data.data.keys);
   }, []);
 
   // const baseUrls = data.data.urls;

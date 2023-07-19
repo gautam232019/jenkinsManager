@@ -3,6 +3,7 @@ import axios from 'axios';
 import { ToastContainer, toast } from 'react-toastify';
 import qs from 'qs';
 import Select from 'react-select';
+import data from '../pages/data.json'
 
 const CreatePod = () => {
     const [name,setName] = useState('')
@@ -476,14 +477,16 @@ const CreatePod = () => {
     const getData = async () => {
         await axios.get(`${process.env.REACT_APP_URL}:3001/api/data`)
         .then(response => {
-         console.log(response.data.data.urls);
          setBaseurls(response.data.data.urls);
          setUsers(response.data.data.users);
          setKeys(response.data.data.keys);
         })
       }
       useEffect(() => {
-        getData();
+        // getData();
+         setBaseurls(data.data.urls);
+         setUsers(data.data.users);
+         setKeys(data.data.keys);
       }, []);
 
     const showContainerForm = () => {

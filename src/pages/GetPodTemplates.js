@@ -46,7 +46,10 @@ function  GetCredentials() {
 
   //Used to get controller data when the page loads
   useEffect(() => {
-    getData();
+    // getData();
+         setBaseurls(data.data.urls);
+         setUsers(data.data.users);
+         setKeys(data.data.keys);
   }, []);
   
   async function fetchKey (param) {

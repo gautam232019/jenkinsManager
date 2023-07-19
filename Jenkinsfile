@@ -14,15 +14,6 @@ pipeline {
                 git branch: 'main', url: 'https://gautam232019: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@github.com/gautam232019/jenkinsManager.git'
             }
         }
-        stage('Start Backend Server') {
-            steps {
-                script {
-                   sh 'cd backend'
-                   sh 'npm install'
-                   sh 'pm2 start backend/server.js'
-                }
-            }
-        }
         stage('Build and Run Docker') {
             steps {
                 script {
