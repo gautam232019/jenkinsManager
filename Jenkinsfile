@@ -11,7 +11,7 @@ pipeline {
     stages {
         stage('Code Pull') {
             steps {
-                git branch: 'main', url: 'https://gautam232019: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@github.com/gautam232019/jenkinsManager.git'
+                git branch: 'main', url: 'https://gautam232019:token@github.com/gautam232019/jenkinsManager.git'
             }
         }
         stage('Build and Run Docker') {
