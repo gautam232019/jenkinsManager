@@ -98,6 +98,7 @@ const UpdateCredentals = (props) => {
         console.log(usernameCheckbox);
       }
 
+      //Various Functions for handling submit events
       let updateItem = async (event,url,user) => {
         event.preventDefault();
         let json;
@@ -164,11 +165,6 @@ const UpdateCredentals = (props) => {
           });
       };
 
-      function timeout(delay) {
-        console.log("heyy");
-        return new Promise( res => setTimeout(res, delay) );
-      }
-
       let handleSubmit = async (event) => {
         event.preventDefault();
         for(let i=0 ; i< selectedOptions.length ; i++){
@@ -190,7 +186,6 @@ const UpdateCredentals = (props) => {
         }
         if(counter == 1){
           toast("Deleted Succesfully")
-          await timeout(1000);
           history.goBack();
         }
         else{
