@@ -1,4 +1,4 @@
-import './awsConfig'
+//Imports
 import React from 'react';
 import './App.css';
 import Navbar from './components/Navbar';
@@ -11,6 +11,7 @@ import CreatePod from './pages/CreatePod';
 import GetPodTemplates from './pages/GetPodTemplates'
 
 function App() {
+  //Routes
   return (
     <>
       <Router>

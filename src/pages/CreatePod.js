@@ -1,15 +1,14 @@
+//Imports
 import React,{useState,useEffect} from 'react';
 import axios from 'axios';
 import { ToastContainer, toast } from 'react-toastify';
-import qs from 'qs';
 import Select from 'react-select';
 import data from '../pages/data.json'
 
 const CreatePod = () => {
+    //Variables
     const [name,setName] = useState('')
-    const [queryResponse,setQueryResponse] = useState()
     const [baseUrls,setBaseurls] = useState([]);
-    const [crumb, setCrumb] = useState('')
     const [namespace,setNamespace] = useState('');
     const [label,setLabel] = useState('')
     const [keys,setKeys] = useState([]);
@@ -20,7 +19,6 @@ const CreatePod = () => {
     const [yamlMerge,setYamlMerge] = useState('')
     const [containerName,setContainerName] = useState('');
     let   [formVisible,setFormVisible] = useState(0);
-    let   [volumeFormVisible,setVolumeFormVisible] = useState(0);
     const [dockerImage,setDockerImage] = useState('');
     const [wdir,setWdir] = useState('');
     const [command,setCommand] = useState('');
@@ -34,8 +32,7 @@ const CreatePod = () => {
         option: false
     })
     
-
-
+    
     let handleSubmit = (event) => {
         event.preventDefault();
         if(selectedOptions.length == 0){
@@ -44,106 +41,25 @@ const CreatePod = () => {
         else{
           for(let i=0 ; i< selectedOptions.length ; i++){
             let selectedNo = selectedOptions[i].value;
-            createPod(event,baseUrls[selectedNo],process.env.REACT_APP_API_TOKEN,users[selectedNo]);
+            createPod(event,baseUrls[selectedNo],users[selectedNo]);
             }
         }
         // setIsLoading(false);
       }
     
-      let createPod = async (event,url,uniqueKey,user) => {
+      let createPod = async (event,url,user) => {
         event.preventDefault();
-        // const key = await fetchKey(uniqueKey);
-        // const Item = { 'json':  JSON.stringify(json)}
-        const auth =`${user}:${uniqueKey}`
-    
-        const config = {
-          headers: {
-            Authorization: `Basic ${btoa(auth.toString())}`
-          }
-        }
-    
-        await axios.get(`${url}crumbIssuer/api/json`,config)
-        .then(response => {
-          console.log(response.data.crumb);
-          setCrumb(response.data.crumb)
-        })
-    
-        const config2 = {headers: {
-          Authorization: `Basic ${btoa(auth.toString())}`,
-          'Jenkins-Crumb': crumb,
-          'Content-Type': 'application/x-www-form-urlencoded'
+  
+        const config = {headers: {
+          'baseurl': url,
+          'username':user
         }};
-        let query = `import jenkins.model.Jenkins
-        import groovy.json.JsonBuilder
-        def cloudsData = []
-        Jenkins.instance.clouds.each { cloud ->
-            if (cloud.class.simpleName == 'KubernetesCloud') {
-                def cloudData = [:]
-                cloudData.name = cloud.name
-                cloudData.type = cloud.class.name
-                cloudData.options = [:]
-                cloudData.options.serverUrl = cloud.serverUrl
-                cloudData.options.jenkinsUrl = cloud.jenkinsUrl
-                cloudData.options.credentialsId = cloud.credentialsId
-                cloudData.options.containerCap = cloud.containerCap
-                cloudData.options.templates = []
-                cloud.templates.each { template ->
-                    def podTemplate = [:]
-                    podTemplate.id = template.id
-                    podTemplate.name = template.name
-                    podTemplate.label = template.label
-                    podTemplate.namespace = template.namespace
-                    podTemplate.containerTemplates = []
-                    template.containers.each { container ->
-                        def containerData = [:]
-                        containerData.name = container.name
-                        containerData.image = container.image
-                        containerData.args = container.args
-                        containerData.command = container.command
-                        containerData.resources = [:]
-                        containerData.resources.cpu = container.resourceRequestCpu
-                        containerData.resources.memory = container.resourceRequestMemory
-                        // Add more container properties as needed
-                        podTemplate.containerTemplates << containerData
-                    }
-                    podTemplate.volumes = []
-                    template.volumes.each { volume ->
-                        if (volume instanceof org.csanchez.jenkins.plugins.kubernetes.volumes.ConfigMapVolume ||
-                                volume instanceof org.csanchez.jenkins.plugins.kubernetes.volumes.EmptyDirVolume) {
-                            def volumeData = [:]
-                            volumeData.class = volume.getClass().getName()
-                            if (volume instanceof org.csanchez.jenkins.plugins.kubernetes.volumes.ConfigMapVolume) {
-                                def configMapVolume = (org.csanchez.jenkins.plugins.kubernetes.volumes.ConfigMapVolume) volume
-                                volumeData.name = configMapVolume.configMapName
-                                volumeData.mountPath = configMapVolume.mountPath
-                                volumeData.type = 'ConfigMap'
-                                // Add more ConfigMap volume properties as needed
-                            } else if (volume instanceof org.csanchez.jenkins.plugins.kubernetes.volumes.EmptyDirVolume) {
-                                def emptyDirVolume = (org.csanchez.jenkins.plugins.kubernetes.volumes.EmptyDirVolume) volume
-                                volumeData.name = emptyDirVolume.mountPath
-                                volumeData.type = 'EmptyDir'
-                                // Add more EmptyDir volume properties as needed
-                            }
-                            podTemplate.volumes << volumeData
-                        }
-                    }
-                    podTemplate.nodeSelector = template.nodeSelector
-                    podTemplate.serviceAccount = template.serviceAccount
-                    podTemplate.privileged = template.privileged
-                    // Add more pod template properties as needed
-                    cloudData.options.templates << podTemplate
-                }
-                cloudsData << cloudData
-            }
-        }
-        def json = new JsonBuilder(cloudsData)
-        println(json.toPrettyString())
-        ` 
+      
+        //Api call with global variables
         let queryResult;
         let templateLength;
-        let Item = {'script': query};
-        await axios.post(`${url}scriptText`,Item,
-        config2)
+        await axios.post(`https://7s973mvv94.execute-api.us-east-2.amazonaws.com/query`,{},
+        config)
           .then((response) => {
             console.log(response.data[0].name);
             queryResult = response.data[0];
@@ -153,6 +69,7 @@ const CreatePod = () => {
             console.error('Error getting query:', error);
           });
 
+          //Json object for pod
           let json = {
             "cloud": {
               "stapler-class": "org.csanchez.jenkins.plugins.kubernetes.KubernetesCloud",
@@ -196,6 +113,7 @@ const CreatePod = () => {
             }
         };
 
+        //Recreating old pod templates object
         for(let i=0 ; i<templateLength ; i++){
           let containerLength = queryResult.options.templates[i].containerTemplates.length;
           let volumeLength = queryResult.options.templates[i].volumes.length;
@@ -286,7 +204,6 @@ const CreatePod = () => {
             json.cloud.templates[i].volumes.push(volume);
           }
         }
-        // console.log(json);
 
         //add new template to the json object
         if(name == "" || namespace == "" || label == ""){
@@ -371,7 +288,6 @@ const CreatePod = () => {
         }
         json.cloud.templates[json.cloud.templates.length-1].containers.push(newContainer)
         
-        
         let newVolume;
         if(volume.value == "Config Map Volume") {
           if(configMapName == "" || mountPath == ""){
@@ -400,8 +316,9 @@ const CreatePod = () => {
         }
         json.cloud.templates[json.cloud.templates.length-1].volumes.push(newVolume)
         console.log(json);
-        Item = {'json': JSON.stringify(json)}
-        await axios.post(`${url}manage/configureClouds/configure`,qs.stringify(Item),config2)
+
+        //Api call for creating pod
+        await axios.post(`https://7s973mvv94.execute-api.us-east-2.amazonaws.com/createpods`,json,config)
         .then(response => {
             console.log(response);
             toast("Succesfully created pod template!")
@@ -411,7 +328,7 @@ const CreatePod = () => {
         })
       };
 
-
+    //Handle Change event for checkboxes used in the pod template form 
     const handleTtyCheckboxChange = (event) => {
         const {name,checked} = event.target;
         setTtyCheckbox(prevState => ({
@@ -445,11 +362,13 @@ const CreatePod = () => {
         setYamlMerge(selected)
     }
     
+    //Setting options for jenkins controller
     const options = [];
     for(let i=0 ; i<baseUrls.length ; i++){
         options.push({ value: i, label: keys[i] });
     }
 
+    //Setting up options for all checkboxes
     const usageOptions = [];
     usageOptions.push({
       value: "Only build jobs with label expressions matching this node",
@@ -461,39 +380,34 @@ const CreatePod = () => {
         value: "Config Map Volume",
         label: "Config Map Volume"
     })
+
     volumeOptions.push({
         value: "Empty Dir Volume",
         label: "Empty Dir Volume"
     })
+
     const yamlMergeOptions = [];
     yamlMergeOptions.push({
         value: "Override",
         label: "Override"
     })
+
     yamlMergeOptions.push({
         value: "Merge",
         label: "Merge"
     })
-    const getData = async () => {
-        await axios.get(`${process.env.REACT_APP_URL}:3001/api/data`)
-        .then(response => {
-         setBaseurls(response.data.data.urls);
-         setUsers(response.data.data.users);
-         setKeys(response.data.data.keys);
-        })
-      }
+
       useEffect(() => {
-        // getData();
          setBaseurls(data.data.urls);
          setUsers(data.data.users);
          setKeys(data.data.keys);
       }, []);
 
+    //Visibility handlers
     const showContainerForm = () => {
         setFormVisible(formVisible+1);
-        // console.log(formVisible);
     }
-    // console.log(volume);
+  
     const renderVolumeForm = () => {
         // console.log(volume);
         if(volume.value == "Empty Dir Volume"){
@@ -594,6 +508,8 @@ const CreatePod = () => {
        }
        return containers
     }
+
+    //UI for create pod template screen
     return (
         <div className='createpod'>
           <ToastContainer/>

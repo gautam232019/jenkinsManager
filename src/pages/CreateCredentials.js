@@ -1,74 +1,51 @@
+//Imports
 import React, { useState,useEffect } from 'react';
-import AWS from 'aws-sdk';
 import axios from 'axios';
-import qs from 'qs';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Select from 'react-select';
 import data from './data.json'
 
-function CreateCredentials() {
+const CreateCredentials = () => {
+  //Variables
   const [scope, setScope] = useState('GLOBAL');
-  const [crumb, setCrumb] = useState('')
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [description, setDescription] = useState('');
   const [id, setId] = useState('');
   const [selectedOption, setSelectedOption] = useState('');
-  const [type,setType] = useState('');
-  const [param,setParam] = useState()
-  const [selectall, setSelectall] = useState(false)
   const [usernameSecret,setUsernameSecret] = useState(false)
   const [privateKey,setPrivateKey] = useState("")
   const [passphrase,setPassphrase] = useState("")
   const [secretText,setSecretText] = useState("")
-  const [selectAll,setSelectAll] = useState(false)
-  const [isLoading,setIsLoading] = useState(false)
-
   const [baseUrls,setBaseurls] = useState([]);
   const [keys,setKeys] = useState([]);
   const [users,setUsers] = useState([]);
+  const [selectedOptions, setSelectedOptions] = useState([]);
+  const [usernameCheckbox,setUsernameCheckbox] = useState({
+    option: false
+  });
 
   const options = [];
   for(let i=0 ; i<baseUrls.length ; i++){
     options.push({ value: i, label: keys[i] });
   }
    
-  const [selectedOptions, setSelectedOptions] = useState([]);
   
   const handleJenkinsOptionChange = (selected) => {
     setSelectedOptions(selected);
   };
 
-  const getData = async () => {
-    await axios.get(`${process.env.REACT_APP_URL}:3001/api/data`)
-    .then(response => {
-         setBaseurls(response.data.data.urls);
-         setUsers(response.data.data.users);
-         setKeys(response.data.data.keys);
-    })
-  }
   useEffect(() => {
-    // getData();
          setBaseurls(data.data.urls);
          setUsers(data.data.users);
          setKeys(data.data.keys);
   }, []);
 
-  // const baseUrls = data.data.urls;
-  // const keys = data.data.keys;
-  // const users = data.data.users;
-  
-  // console.log(baseUrls);
-
   const handleOptionChange = (event) => {
     setSelectedOption(event.target.value);
   };
 
-
-  const [usernameCheckbox,setUsernameCheckbox] = useState({
-    option: false
-  });
   
   const handleUsernameCheckboxChange = (event) => {
     const {name,checked} = event.target;
@@ -77,25 +54,6 @@ function CreateCredentials() {
       [name]: checked
     }))
     console.log(usernameCheckbox);
-  }
-
-
-  async function fetchKey (param) {
-    const ssm = new AWS.SSM();
-  
-    const params = {
-      Name: param // Replace with the actual name of your SSM parameter
-    };
-
-    try {
-      const response = await ssm.getParameter(params).promise();
-      const parameterValue = await response.Parameter.Value;
-      return parameterValue;
-      // Do something with the parameter value in your React component
-    } catch (error) {
-      console.error('Error fetching SSM parameter:', error);
-      throw error;
-    }
   }
   
   let handleSubmit = (event) => {
@@ -112,11 +70,11 @@ function CreateCredentials() {
     // setIsLoading(false);
   }
 
-  let createItem = async (event,url,uniqueKey,user) => {
+  let createItem = async (event,url,user) => {
     event.preventDefault();
+    //json for credential object
     let json;
     if(selectedOption == 'option1'){
-      // setType("com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl");
       if(id == '' || username == '' || password == ''){
         toast("Please fill the necessary fields!")
         return;
@@ -135,14 +93,12 @@ function CreateCredentials() {
           "$class": "com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl"
         }
       }
-      // console.log(param);
     }
     else if(selectedOption == 'option2'){
       if(id == '' || username == '' || usernameSecret == ''){
         toast("Please fill the necessary fields!")
         return;
       }
-      // setType("com.cloudbees.jenkins.plugins.sshcredentials.impl.BasicSSHUserPrivateKey$DirectEntryPrivateKeySource");
       json = {
         "": "7",
         "credentials": {
@@ -182,32 +138,14 @@ function CreateCredentials() {
         }
       }
     }
-    // const key = await fetchKey(uniqueKey);
-    const Item = { 'json':  JSON.stringify(json)}
-    const auth =`${user}:${uniqueKey}`
 
-    const config = {
-      headers: {
-        Authorization: `Basic ${btoa(auth.toString())}`
-      }
-    }
-
-    await axios.get(`${url}crumbIssuer/api/json`,config)
-    .then(response => {
-      console.log(response.data.crumb);
-      setCrumb(response.data.crumb)
-    })
-
-    const config2 = {headers: {
-      Authorization: `Basic ${btoa(auth.toString())}`,
-      'Jenkins-Crumb': crumb,
-      'Content-Type': 'application/x-www-form-urlencoded'
+    const config = {headers: {
+      baseurl : url,
+      username : user,
     }};
-    await axios.post(`${url}manage/credentials/store/system/domain/_/createCredentials`,qs.stringify(Item),
-    config2)
+    await axios.post(`https://7s973mvv94.execute-api.us-east-2.amazonaws.com/createcredentials`,json,
+    config)
       .then(() => {
-        // Item created successfully, refresh the list
-        // getItems();
         setScope('');
         setUsername('');
         setPassword('');
@@ -220,6 +158,7 @@ function CreateCredentials() {
       });
   };
 
+  //Function for UI of create credentials form
   const renderFormFields = () => {
     if (selectedOption === 'option1') {
       return (
@@ -338,6 +277,7 @@ function CreateCredentials() {
     return null;
   };
   
+  //UI for create credentials page
   return (
     <div className='createcredential'>
       <ToastContainer/>

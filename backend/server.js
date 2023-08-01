@@ -20,7 +20,7 @@ app.get('/api/data', (req, res) => {
     }
   });
 });
-
+app.post()
 // POST endpoint to update JSON data
 app.post('/api/data', (req, res) => {
   const newData = req.body;

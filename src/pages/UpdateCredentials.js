@@ -12,14 +12,14 @@ import data from './data.json'
 const UpdateCredentals = (props) => {
     const history = useHistory();
     
-    let id,typeName,description,username;
+    let id,typeName,description;
     let state;
 
     if(props.location.state){
+      console.log(props.location.state);
       id = props.location.state.id;
       typeName = props.location.state.typeName;
       description = props.location.state.description;
-      username = props.location.state.username;
       state = localStorage.getItem('state')
       if(state){
         localStorage.removeItem('state')
@@ -33,7 +33,6 @@ const UpdateCredentals = (props) => {
         id = state.id;
         typeName = state.typeName;
         description = state.description;
-        username = state.username;
       }
     }
 
@@ -42,7 +41,7 @@ const UpdateCredentals = (props) => {
     const [type, setType] = useState(typeName)
     const [scope, setScope] = useState('GLOBAL');
     const [crumb, setCrumb] = useState('')
-    const [preusername, setPreUsername] = useState(username);
+    const [preusername, setPreUsername] = useState("");
     const [password, setPassword] = useState('');
     const [predescription, setPreDescription] = useState(description);
     const [selectall, setSelectall] = useState(false)
@@ -77,6 +76,7 @@ const UpdateCredentals = (props) => {
          setKeys(data.data.keys);
     }, []);
 
+    
     let preChoice = "";
 
     if(type == "Username with password"){
@@ -142,8 +142,6 @@ const UpdateCredentals = (props) => {
         let json;
         if(selectedOption == 'option1'){
           json = {
-            "": "0",
-            "credentials": {
               "scope": scope,
               "username": preusername,
               "usernameSecret": false,
@@ -155,11 +153,8 @@ const UpdateCredentals = (props) => {
               "$class": "com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl"
             }
           }
-        }
         else if(selectedOption == 'option2'){
           json = {
-            "": "7",
-            "credentials": {
               "scope": scope,
               "id": realid,
               "description": predescription,
@@ -177,7 +172,6 @@ const UpdateCredentals = (props) => {
               "$class": "com.cloudbees.jenkins.plugins.sshcredentials.impl.BasicSSHUserPrivateKey"
             }
           }
-        }
         else if(selectedOption == 'option3'){
           json = {
             "stapler-class": "org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl",
@@ -189,28 +183,28 @@ const UpdateCredentals = (props) => {
           };
         }
         
-        const Item = { 'json':  JSON.stringify(json)}
-        const auth =`${user}:${uniqueKey}`
+        // const Item = { 'json':  JSON.stringify(json)}
+        // const auth =`${user}:${uniqueKey}`
     
-        const config = {
-          headers: {
-            Authorization: `Basic ${btoa(auth.toString())}`
-          }
-        }
+        // const config = {
+        //   headers: {
+        //     Authorization: `Basic ${btoa(auth.toString())}`
+        //   }
+        // }
     
-        await axios.get(`${url}crumbIssuer/api/json`,config)
-        .then(response => {
-          console.log(response.data.crumb);
-          setCrumb(response.data.crumb)
-        })
+        // await axios.get(`${url}crumbIssuer/api/json`,config)
+        // .then(response => {
+        //   console.log(response.data.crumb);
+        //   setCrumb(response.data.crumb)
+        // })
         
         const config2 = {headers: {
-          Authorization: `Basic ${btoa(auth.toString())}`,
-          'Jenkins-Crumb': crumb,
-          'Content-Type': 'application/x-www-form-urlencoded'
+          'baseurl':  url,
+          'username': user,
+          'realid':realid
         }};
-        console.log(Item);
-        await axios.post(`${url}manage/credentials/store/system/domain/_/credential/${realid}/updateSubmit`,qs.stringify(Item),
+        // console.log(Item);
+        await axios.post(`https://7s973mvv94.execute-api.us-east-2.amazonaws.com/updatecredentials`,json,
         config2)
           .then(() => {
             setScope('');
